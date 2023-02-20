@@ -7,7 +7,7 @@ var bodyParser = require("body-parser");
 var DBConnector = require("./db-connector");
 var handleAdmin = require("./handler/admin");
 
-var PORT = 8080;
+var PORT = process.env.PORT || 3000;
 var loggedIn = false;
 
 var dbConnector = new DBConnector("filesystem");
