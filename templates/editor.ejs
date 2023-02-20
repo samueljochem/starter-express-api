@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit post</title>
+    <!--script-- src="https://cdn.jsdelivr.net/npm/marked@4.2.12/lib/marked.umd.min.js"></!--script-->
+    <script src="static/marked.min.js"></script>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        html,body,main{
+            margin: 0;
+            height: 100%;
+            /*min-height: 100%;
+            min-width: 100%;*/
+        }
+        main{
+            display: flex;
+            flex-direction: column;
+        }
+        .tab-name-wrapper{
+            display: flex;
+        }
+        .tab-name-wrapper>.tab-name{
+            padding: .2rem;
+            cursor: pointer;
+        }
+        .tab-name-wrapper>.active-tab-name{
+            background-color: gray;
+        }
+        .tab-wrapper{
+            height: 100%;
+            position: relative;
+        }
+        .tab-wrapper>.tab{
+            position: absolute;
+            display: none;
+        }
+        .tab-wrapper>.active-tab{
+            display: block;
+            min-width: 100%;
+            min-height: 100%;
+        }
+        #edit.active-tab,#preview.active-tab{
+            display: flex;
+            min-width: 100%;
+            min-height: 100%;
+            vertical-align: middle;
+            align-items: stretch;
+        }
+        #md-editor,.preview-iframe{
+            display: block;
+            min-width: 100%;
+            min-height: 100%;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="tab-name-wrapper">
+            <div class="tab-name" data-tab-id="options">Options</div>
+            <div class="tab-name active-tab-name" data-tab-id="edit">Edit</div>
+            <div class="tab-name" data-tab-id="preview">Preview</div>
+        </div>
+        <div class="tab-wrapper">
+            <div class="tab" id="options">
+                <label for="title-value">Title</label>
+                <input id="title-value"><br>
+                <label for="description-value">Description</label>
+                <textarea id="description-value"></textarea><br>
+                <label for="keywords-value">Title</label>
+                <input id="keywords-value">
+            </div>
+            <div class="tab active-tab" id="edit">
+                <textarea id="md-editor"></textarea>
+            </div>
+            <div class="tab" id="preview">
+                <iframe title="preview" class="preview-iframe"></iframe>
+            </div>  
+        </div>
+        <div class="bottom-actions">
+            <button>Save</button>
+            <button>Publish</button>
+        </div>
+    </main>
+    <script>
+        var editor = document.querySelector("#md-editor");
+        var preview = document.querySelector(".preview-iframe");
+
+        var activeTab = document.querySelector("#md-editor");
+        var tabLayout = {
+            splitted:false,
+            order:["options","options"]
+        }
+        var updatePreviewOnShow = false;
+
+        document.querySelector(".tab-name-wrapper").addEventListener("click",function(e){
+            document.querySelectorAll(".tab").forEach(function(item){
+                item.classList.remove("active-tab");
+            })
+            document.querySelectorAll(".tab-name").forEach(function(item){
+                item.classList.remove("active-tab-name");
+            })
+            var newsActiveTab = document.querySelector("#"+e.target.getAttribute("data-tab-id"));
+            if(newsActiveTab){
+                activeTab = newsActiveTab;
+                activeTab.classList.add("active-tab");
+                e.target.classList.add("active-tab-name");
+            }
+            /*if(splitted){
+                if(activeTab){
+                    var activeTabId = activeTab.id;
+                    if(tabLayout.left === activeTabId){
+                        //
+                    }
+                }
+            }else{
+                tabLayout.left === e.target.getAttribute("data-tab-id");
+                tabLayout.right === e.target.getAttribute("data-tab-id");
+            }
+            console.log(e);*/
+            if(updatePreviewOnShow){
+                preview.srcdoc = marked.parse(editor.value);
+                updatePreviewOnShow = false;
+            }
+        })
+
+        editor.addEventListener("input",function(){
+            if(tabLayout.order.includes("preview")){
+                preview.srcdoc = marked.parse(editor.value);
+            }else{
+                updatePreviewOnShow = true;
+            }
+        });
+    </script>
+</body>
+</html>
