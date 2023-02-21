@@ -6,14 +6,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TabLayout</title>
         <style>
-            :root{
+            :root {
                 --tab-height: 20px;
             }
-            html,body{
+
+            html,
+            body {
                 width: 99.9%;
                 height: 99.9%;
                 margin: 0;
             }
+
             main {
                 width: 100%;
                 height: 100%;
@@ -26,21 +29,22 @@
                 width: 100%;
             }
 
-            .tab-content,.tab-name{
+            .tab-content,
+            .tab-name {
                 outline: 1px inset gray;
             }
-            
-            .split-view{
+
+            .split-view {
                 height: 100%;
                 width: 100%;
             }
 
-            .tab-content{
+            .tab-content {
                 height: calc(100% - var(--tab-height));
                 width: 100%;
             }
 
-            
+
 
             .split-view-preview.active {
                 pointer-events: none;
@@ -100,6 +104,13 @@
                 height: calc(100% - var(--tab-height));
                 width: 100%;
             }
+
+            .temp-tabs,
+            .temp-tabs * {
+                width: 0 !important;
+                height: 0 !important;
+                display: none !important;
+            }
         </style>
     </head>
     <body>
@@ -122,7 +133,7 @@
                         "<div class=\"tab-name-wrapper\"></div>" +
                         "<div class=\"tab-content\"></div>" +
                         "</div>";
-                    element.innerHTML = htmlContent + htmlContent + "<div class=\"split-view-preview\"></div>";
+                    element.innerHTML = htmlContent + htmlContent + "<div class=\"split-view-preview\"></div><div class=\"temp-tabs\"></div>";
                     element.style.display = "flex";
                     element.style.position = "relative";
                     element.addEventListener("dragover",function(e) {
@@ -191,7 +202,7 @@
                         } else if((["top","bottom"]).includes(_glob.lastSet)) {
                             _glob.setMode(3);
                             _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
-                        }else if(_glob.lastSet === "center"){
+                        } else if(_glob.lastSet === "center") {
                             _glob.setMode(1);
                             _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
                         }
@@ -228,28 +239,19 @@
                     this.tabs[id].position = position;
                     this.tabs[id].active = active;
                     var lastActiveIds = [false,false];
+                    var wasNewActive = false;
                     for(var i in this.tabs) {
-                        if(this.tabs[i].position === 1) {
-                            if(!lastActiveIds[0] || this.tabs[i].active) {
-                                this.tabLayoutWrapper.children[0].children[1].innerHTML = "";
-                                this.tabLayoutWrapper.children[0].children[1].appendChild(this.tabs[i].tab.element);
-                                if(this.tabs[i].active) {
-                                    if(lastActiveIds[0]) {
-                                        this.tabs[lastActiveIds[0]].active = false;
-                                    }
-                                    lastActiveIds[0] = i;
-                                }
+                        if(!lastActiveIds[this.tabs[i].position - 1] || (i === id && active)/* || this.tabs[i].active*/) {
+                            if(this.tabLayoutWrapper.children[this.tabs[i].position - 1].children[1].children.length) {
+                                this.tabLayoutWrapper.querySelector(".temp-tabs").appendChild(
+                                    this.tabLayoutWrapper.children[this.tabs[i].position - 1].children[1].children[0]);
                             }
-                        } else if(this.tabs[i].position === 2) {
-                            if(!lastActiveIds[1] || this.tabs[i].active) {
-                                this.tabLayoutWrapper.children[1].children[1].innerHTML = "";
-                                this.tabLayoutWrapper.children[1].children[1].appendChild(this.tabs[i].tab.element);
-                                if(this.tabs[i].active) {
-                                    if(lastActiveIds[1]) {
-                                        this.tabs[lastActiveIds[1]].active = false;
-                                    }
-                                    lastActiveIds[1] = i;
+                            this.tabLayoutWrapper.children[this.tabs[i].position - 1].children[1].appendChild(this.tabs[i].tab.element);
+                            if(this.tabs[i].active) {
+                                if(lastActiveIds[this.tabs[i].position - 1]) {
+                                    this.tabs[lastActiveIds[this.tabs[i].position - 1]].active = false;
                                 }
+                                lastActiveIds[this.tabs[i].position - 1] = i;
                             }
                         }
                         if(i === id && oldPosition !== position) {
@@ -296,7 +298,7 @@
                         }
 
                     })
-                    tabName.addEventListener("click",function(e){
+                    tabName.addEventListener("click",function(e) {
                         console.log(e,e.target,_glob)
                         _glob.setTabPosition(e.target.getAttribute("data-tab-id"),_glob.tabs[e.target.getAttribute("data-tab-id")].position,true);
                     })
@@ -306,6 +308,7 @@
                     } else {
                         this.tabLayoutWrapper.children[1].children[0].appendChild(tabName);
                     }
+                    this.tabLayoutWrapper.querySelector(".temp-tabs").appendChild(tab.element);
                     this.setTabPosition(tab.id,position,active);
                 }
             }

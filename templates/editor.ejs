@@ -1,141 +1,445 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit post</title>
-    <!--script-- src="https://cdn.jsdelivr.net/npm/marked@4.2.12/lib/marked.umd.min.js"></!--script-->
-    <script src="static/marked.min.js"></script>
-    <style>
-        *{
-            box-sizing: border-box;
-        }
-        html,body,main{
-            margin: 0;
-            height: 100%;
-            /*min-height: 100%;
-            min-width: 100%;*/
-        }
-        main{
-            display: flex;
-            flex-direction: column;
-        }
-        .tab-name-wrapper{
-            display: flex;
-        }
-        .tab-name-wrapper>.tab-name{
-            padding: .2rem;
-            cursor: pointer;
-        }
-        .tab-name-wrapper>.active-tab-name{
-            background-color: gray;
-        }
-        .tab-wrapper{
-            height: 100%;
-            position: relative;
-        }
-        .tab-wrapper>.tab{
-            position: absolute;
-            display: none;
-        }
-        .tab-wrapper>.active-tab{
-            display: block;
-            min-width: 100%;
-            min-height: 100%;
-        }
-        #edit.active-tab,#preview.active-tab{
-            display: flex;
-            min-width: 100%;
-            min-height: 100%;
-            vertical-align: middle;
-            align-items: stretch;
-        }
-        #md-editor,.preview-iframe{
-            display: block;
-            min-width: 100%;
-            min-height: 100%;
-            resize: none;
-        }
-    </style>
-</head>
-<body>
-    <main>
-        <div class="tab-name-wrapper">
-            <div class="tab-name" data-tab-id="options">Options</div>
-            <div class="tab-name active-tab-name" data-tab-id="edit">Edit</div>
-            <div class="tab-name" data-tab-id="preview">Preview</div>
-        </div>
-        <div class="tab-wrapper">
-            <div class="tab" id="options">
-                <label for="title-value">Title</label>
-                <input id="title-value"><br>
-                <label for="description-value">Description</label>
-                <textarea id="description-value"></textarea><br>
-                <label for="keywords-value">Title</label>
-                <input id="keywords-value">
-            </div>
-            <div class="tab active-tab" id="edit">
-                <textarea id="md-editor"></textarea>
-            </div>
-            <div class="tab" id="preview">
-                <iframe title="preview" class="preview-iframe"></iframe>
-            </div>  
-        </div>
-        <div class="bottom-actions">
-            <button>Save</button>
-            <button>Publish</button>
-        </div>
-    </main>
-    <script>
-        var editor = document.querySelector("#md-editor");
-        var preview = document.querySelector(".preview-iframe");
-
-        var activeTab = document.querySelector("#md-editor");
-        var tabLayout = {
-            splitted:false,
-            order:["options","options"]
-        }
-        var updatePreviewOnShow = false;
-
-        document.querySelector(".tab-name-wrapper").addEventListener("click",function(e){
-            document.querySelectorAll(".tab").forEach(function(item){
-                item.classList.remove("active-tab");
-            })
-            document.querySelectorAll(".tab-name").forEach(function(item){
-                item.classList.remove("active-tab-name");
-            })
-            var newsActiveTab = document.querySelector("#"+e.target.getAttribute("data-tab-id"));
-            if(newsActiveTab){
-                activeTab = newsActiveTab;
-                activeTab.classList.add("active-tab");
-                e.target.classList.add("active-tab-name");
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Edit post</title>
+        <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+        <!--script-- src="https://cdn.jsdelivr.net/npm/marked@4.2.12/lib/marked.umd.min.js"></!--script-->
+        <script src="static/marked.min.js"></script>
+        <style>
+            :root {
+                --tab-height: 20px;
             }
-            /*if(splitted){
-                if(activeTab){
-                    var activeTabId = activeTab.id;
-                    if(tabLayout.left === activeTabId){
-                        //
+
+            html,
+            body {
+                width: 99.9%;
+                height: 99.9%;
+                margin: 0;
+            }
+
+            main {
+                width: 100%;
+                height: 100%;
+                background-color: antiquewhite;
+            }
+
+            .tab-name-wrapper {
+                display: flex;
+                height: var(--tab-height);
+                width: 100%;
+            }
+
+            .tab-content,
+            .tab-name {
+                outline: 1px inset gray;
+            }
+
+            .split-view {
+                height: 100%;
+                width: 100%;
+            }
+
+            .tab-content {
+                height: calc(100% - var(--tab-height));
+                width: 100%;
+            }
+
+
+
+            .split-view-preview.active {
+                pointer-events: none;
+                position: absolute;
+                left: 100%;
+                top: 100%;
+                right: 100%;
+                bottom: 100%;
+                height: calc(100% - var(--tab-height));
+                width: 100%;
+                background-color: rgba(100, 100, 100, 0.5);
+                transition: all 200ms ease-in-out 10ms;
+                border-radius: 0.2rem;
+            }
+
+            .split-view-preview.active.left {
+                top: var(--tab-height);
+                left: 0;
+                bottom: 0;
+                right: 50%;
+                height: calc(100% - var(--tab-height));
+                width: 50%;
+            }
+
+            .split-view-preview.active.top {
+                top: var(--tab-height);
+                left: 0;
+                bottom: 50%;
+                right: 0;
+                height: calc(50% - var(--tab-height));
+                width: 100%;
+            }
+
+            .split-view-preview.active.right {
+                top: var(--tab-height);
+                left: 50%;
+                bottom: 0;
+                right: 0;
+                height: calc(100% - var(--tab-height));
+                width: 50%;
+            }
+
+            .split-view-preview.active.bottom {
+                top: calc(50% + var(--tab-height));
+                left: 0;
+                bottom: 0;
+                right: 0;
+                height: calc(50% - var(--tab-height));
+                width: 100%;
+            }
+
+            .split-view-preview.active.center {
+                top: var(--tab-height);
+                left: 0;
+                bottom: 0;
+                right: 0;
+                height: calc(100% - var(--tab-height));
+                width: 100%;
+            }
+
+            .temp-tabs,
+            .temp-tabs * {
+                width: 0 !important;
+                height: 0 !important;
+                display: none !important;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <div class="tab-name-wrapper">
+                <div class="tab-name" data-tab-id="options">Options</div>
+                <div class="tab-name" data-tab-id="edit">Edit</div>
+                <div class="tab-name" data-tab-id="preview">Preview</div>
+                <div class="tab-name active-tab-name" data-tab-id="ckeditor">CKEditor</div>
+            </div>
+            <div class="tab-wrapper">
+                <div class="tab" id="options">
+                    <label for="title-value">Title</label>
+                    <input id="title-value"><br>
+                    <label for="description-value">Description</label>
+                    <textarea id="description-value"></textarea><br>
+                    <label for="keywords-value">Title</label>
+                    <input id="keywords-value">
+                </div>
+                <div class="tab active-tab" id="edit">
+                    <textarea id="md-editor"></textarea>
+                </div>
+                <div class="tab" id="preview">
+                    <iframe title="preview" class="preview-iframe"></iframe>
+                </div>
+                <div class="tab" id="ckeditor"></div>
+            </div>
+            <div class="bottom-actions">
+                <button>Save</button>
+                <button>Publish</button>
+            </div>
+        </main>
+        <script>
+            class TabLayout {
+                /**
+                 * @class TabLayout
+                 * @param {Element} element
+                 * @constructor
+                 */
+                constructor(element) {
+                    var _glob = this;
+                    this.lastSet = false;
+                    this._lastDragId = false;
+                    var htmlContent =
+                        "<div class=\"split-view\">" +
+                        "<div class=\"tab-name-wrapper\"></div>" +
+                        "<div class=\"tab-content\"></div>" +
+                        "</div>";
+                    element.innerHTML = htmlContent + htmlContent + "<div class=\"split-view-preview\"></div><div class=\"temp-tabs\"></div>";
+                    element.style.display = "flex";
+                    element.style.position = "relative";
+                    element.addEventListener("dragover",function(e) {
+                        var maxHeight = _glob.tabLayoutWrapper.clientHeight;
+                        var maxWidth = _glob.tabLayoutWrapper.clientWidth;
+                        var cX = e.layerX;
+                        var cY = e.layerY;
+                        var pos = cX / maxWidth > cY / maxHeight;
+                        pos = (cX > maxWidth / 4 && cX < maxWidth / 4 * 3 && cY > maxHeight / 4 && cY < maxHeight / 4 * 3) ? "center" :
+                            (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth) > 0 ? pos ? "top" : "left" : pos ? "right" : "bottom";
+                        console.log(pos)
+                        //console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
+                        if(pos === "top") {
+                            if(_glob.lastSet !== "top") {
+                                _glob.lastSet = "top";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("right");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("top");
+                            }
+                        } else if(pos === "left") {
+                            if(_glob.lastSet !== "left") {
+                                _glob.lastSet = "left";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("left");
+                            }
+                        } else if(pos === "right") {
+                            if(_glob.lastSet !== "right") {
+                                _glob.lastSet = "right";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("right");
+                            }
+                        } else if(pos === "bottom") {
+                            if(_glob.lastSet !== "bottom") {
+                                _glob.lastSet = "bottom";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("bottom");
+                            }
+                        } else {
+                            if(_glob.lastSet !== "center") {
+                                _glob.lastSet = "center";
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("center");
+                            }
+                        }
+                        //console.log(e,_glob);
+                    })
+                    element.addEventListener("dragover",function(e) {
+                        console.log(e.dataTransfer.getData("text/plain"),_glob)
+                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
+                        e.preventDefault();
+                        //}
+                    })
+                    element.addEventListener("drop",function(e) {
+                        console.log(e,_glob)
+                        _glob.tabLayoutWrapper.children[2].classList.remove("active");
+                        if((["left","right"]).includes(_glob.lastSet)) {
+                            _glob.setMode(2);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "right") + 1,true);
+                        } else if((["top","bottom"]).includes(_glob.lastSet)) {
+                            _glob.setMode(3);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                        } else if(_glob.lastSet === "center") {
+                            _glob.setMode(1);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
+                        }
+                        _glob.lastSet = false;
+                        _glob._lastDragId = false;
+                    })
+                    /**
+                     * 
+                     * @type {(1|2|3)}
+                     * @public
+                     */
+                    this.mode = 1;
+                    this.tabLayoutWrapper = element;
+                    this.tabs = {};
+                    this.setMode(1);
+                }
+                /**
+                 * 
+                 * @param {(1|2|3)} mode
+                 */
+                setMode(mode) {
+                    this.mode = mode;
+                    this.tabLayoutWrapper.style.flexDirection = mode > 2 ? "column" : "row";
+                    this.tabLayoutWrapper.children[1].style.display = mode > 1 ? "block" : "none";
+                }
+                /**
+                 * 
+                 * @param {string} id
+                 * @param {(1|2)} position
+                 * @param {boolean} active -Wether the tab should display over existing tabs
+                */
+                setTabPosition(id,position,active) {
+                    var oldPosition = this.tabs[id].position;
+                    this.tabs[id].position = position;
+                    this.tabs[id].active = active;
+                    var lastActiveIds = [false,false];
+                    var wasNewActive = false;
+                    for(var i in this.tabs) {
+                        if(!lastActiveIds[this.tabs[i].position - 1] || (i === id && active)/* || this.tabs[i].active*/) {
+                            if(this.tabLayoutWrapper.children[this.tabs[i].position - 1].children[1].children.length) {
+                                this.tabLayoutWrapper.querySelector(".temp-tabs").appendChild(
+                                    this.tabLayoutWrapper.children[this.tabs[i].position - 1].children[1].children[0]);
+                            }
+                            this.tabLayoutWrapper.children[this.tabs[i].position - 1].children[1].appendChild(this.tabs[i].tab.element);
+                            if(this.tabs[i].active) {
+                                if(lastActiveIds[this.tabs[i].position - 1]) {
+                                    this.tabs[lastActiveIds[this.tabs[i].position - 1]].active = false;
+                                }
+                                lastActiveIds[this.tabs[i].position - 1] = i;
+                            }
+                        }
+                        if(i === id && oldPosition !== position) {
+                            this.tabLayoutWrapper.children[position - 1].children[0].appendChild(this.tabLayoutWrapper.querySelector("[data-tab-id=" + id + "]"));
+                        }
+                        console.log(i,this.tabs[i]);
                     }
                 }
-            }else{
-                tabLayout.left === e.target.getAttribute("data-tab-id");
-                tabLayout.right === e.target.getAttribute("data-tab-id");
-            }
-            console.log(e);*/
-            if(updatePreviewOnShow){
-                preview.srcdoc = marked.parse(editor.value);
-                updatePreviewOnShow = false;
-            }
-        })
+                /**
+                 * 
+                 * @param {Tab} tab
+                 * @param {(1|2)} position
+                 * @param {boolean} active -Wether the tab should display over existing tabs
+                */
+                addTab(tab,position,active) {
+                    var _glob = this;
+                    this.tabs[tab.id] = {
+                        tab: tab,
+                        position: position,
+                        active: active
+                    };
+                    var tabName = document.createElement("div");
+                    tabName.classList.add("tab-name");
+                    tabName.setAttribute("data-tab-id",tab.id);
+                    tabName.innerText = tab.name;
+                    tabName.draggable = true;
+                    tabName.addEventListener("dragstart",function(e) {
+                        console.log(e);
+                        e.dataTransfer.setData("text/plain","-tab-drag-id:" + e.target.getAttribute("data-tab-id"));
+                    })
+                    tabName.addEventListener("touchleave",function(e) {
+                        console.log(e,_glob);
+                        if(_glob._lastDragId) {
+                            _glob.tabLayoutWrapper.children[2].classList.remove("active");
+                            if((["left","right"]).includes(_glob.lastSet)) {
+                                _glob.setMode(2);
+                                _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "right") + 1,true);
+                            } else if((["top","bottom"]).includes(_glob.lastSet)) {
+                                _glob.setMode(3);
+                                _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                            }
+                            _glob.lastSet = false;
+                            _glob._lastDragId = false;
+                        }
 
-        editor.addEventListener("input",function(){
-            if(tabLayout.order.includes("preview")){
-                preview.srcdoc = marked.parse(editor.value);
-            }else{
-                updatePreviewOnShow = true;
+                    })
+                    tabName.addEventListener("click",function(e) {
+                        console.log(e,e.target,_glob)
+                        _glob.setTabPosition(e.target.getAttribute("data-tab-id"),_glob.tabs[e.target.getAttribute("data-tab-id")].position,true);
+                    })
+                    console.log(this.tabLayoutWrapper.children[0].children);
+                    if(position === 1) {
+                        this.tabLayoutWrapper.children[0].children[0].appendChild(tabName);
+                    } else {
+                        this.tabLayoutWrapper.children[1].children[0].appendChild(tabName);
+                    }
+                    this.tabLayoutWrapper.querySelector(".temp-tabs").appendChild(tab.element);
+                    this.setTabPosition(tab.id,position,active);
+                }
             }
-        });
-    </script>
-</body>
+            class Tab {
+                /**
+                 * Creates a Tab object with an element created from the given id
+                 * @param {string} id
+                 * @constructor
+                 */
+                constructor(name,id) {
+                    /**
+                     * The name of the tab
+                     * @type {string}
+                     * @public
+                    */
+                    this.name = name;
+                    /**
+                     * The id of the tab
+                     * @type {string}
+                     * @public
+                    */
+                    this.id = id;
+                    /**
+                     * The tab element with the given id
+                     * @type {Element}
+                     * @public
+                    */
+                    this.element = document.createElement("div");
+                    this.element.id = id;
+                    /*this.element.addEventListener("dragstart",function(e){
+                        e.setData("text/plain","-tab-drag-id:"+e.target.id);
+                    })*/
+                }
+                _connectTabLayout() {
+                    //
+                }
+            }
+        </script>
+        <script>
+            /*ClassicEditor
+                .create(document.querySelector("#ckeditor"));
+            var editor = document.querySelector("#md-editor");
+            var preview = document.querySelector(".preview-iframe");
+
+            /*var activeTab = document.querySelector("#ckeditor");
+            var tabLayout = {
+                splitted: false,
+                order: ["options","options"]
+            }
+            var updatePreviewOnShow = false;
+
+            document.querySelector(".tab-name-wrapper").addEventListener("click",function(e) {
+                document.querySelectorAll(".tab").forEach(function(item) {
+                    item.classList.remove("active-tab");
+                })
+                document.querySelectorAll(".tab-name").forEach(function(item) {
+                    item.classList.remove("active-tab-name");
+                })
+                var newsActiveTab = document.querySelector("#" + e.target.getAttribute("data-tab-id"));
+                if(newsActiveTab) {
+                    activeTab = newsActiveTab;
+                    activeTab.classList.add("active-tab");
+                    e.target.classList.add("active-tab-name");
+                }
+                /*if(splitted){
+                    if(activeTab){
+                        var activeTabId = activeTab.id;
+                        if(tabLayout.left === activeTabId){
+                            //
+                        }
+                    }
+                }else{
+                    tabLayout.left === e.target.getAttribute("data-tab-id");
+                    tabLayout.right === e.target.getAttribute("data-tab-id");
+                }
+                console.log(e);*
+                if(updatePreviewOnShow) {
+                    preview.srcdoc = marked.parse(editor.value);
+                    updatePreviewOnShow = false;
+                }
+            })*/
+
+            var tabLayout = new TabLayout(document.querySelector("main"));
+            var markdownTab = new Tab("Markdown","md-editor");
+            markdownTab.element.innerHTML = "<textarea></textarea>";
+            var previewTab = new Tab("Preview","preview");
+            previewTab.element.innerHTML = "<iframe></iframe>";
+
+            tabLayout.addTab(markdownTab,1,true);
+            var textarea = document.querySelector("#md-editor>textarea");
+
+            tabLayout.addTab(previewTab,1,false);
+            var previewIframe = document.querySelector("#preview>iframe");
+            textarea.addEventListener("input",function(e) {
+                //if(tabLayout.order.includes("preview")) {
+                previewIframe.srcdoc = marked.parse(e.target.value);
+                /*} else {
+                    updatePreviewOnShow = true;
+                }*/
+            });
+
+
+        </script>
+    </body>
 </html>
