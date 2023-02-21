@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TabLayout</title>
+        <style>
+            main {
+                --tab-height:20px;
+                width: 500px;
+                height: 500px;
+                background-color: antiquewhite;
+            }
+
+            .tab-name-wrapper {
+                display: flex;
+                height: var(--tab-height);
+                width: 100%;
+            }
+
+            .split-view,
+            .tab-content {
+                height: 100%;
+                width: 100%;
+            }
+
+            .split-view-preview.active {
+                position: absolute;
+                left: 100%;
+                top: 100%;
+                right: 100%;
+                bottom: 100%;
+                height: calc(100% - var(--tab-height));
+                width: 100%;
+                background-color: rgba(100, 100, 100, 0.4);
+                transition: all 400ms ease-in-out;
+            }
+
+            .split-view-preview.active.left {
+                top: var(--tab-height);
+                left: 0;
+                bottom: 0;
+                right: 50%;
+                height: calc(100% - var(--tab-height));
+                width: 50%;
+            }
+
+            .split-view-preview.active.top {
+                top: var(--tab-height);
+                left: 0;
+                bottom: 50%;
+                right: 0;
+                height: calc(50% - var(--tab-height));
+                width: 100%;
+            }
+
+            .split-view-preview.active.right {
+                top: var(--tab-height);
+                left: 50%;
+                bottom: 0;
+                right: 0;
+                height: calc(100% - var(--tab-height));
+                width: 50%;
+            }
+
+            .split-view-preview.active.bottom {
+                top: calc(50% + var(--tab-height));
+                left: 0;
+                bottom: 0;
+                right: 0;
+                height: calc(50% - var(--tab-height));
+                width: 100%;
+            }
+
+            .split-view-preview.active.center {
+                top: var(--tab-height);
+                left: 0;
+                bottom: 0;
+                right: 0;
+                height: calc(100% - var(--tab-height));
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            //
+        </main>
+        <script>
+            class TabLayout {
+                /**
+                 * @class TabLayout
+                 * @param {Element} element
+                 * @constructor
+                 */
+                constructor(element) {
+                    var _glob = this;
+                    var htmlContent =
+                        "<div class=\"split-view\">" +
+                        "<div class=\"tab-name-wrapper\"></div>" +
+                        "<div class=\"tab-content\"></div>" +
+                        "</div>";
+                    element.innerHTML = htmlContent + htmlContent + "<div class=\"split-view-preview\"></div>";
+                    element.style.display = "flex";
+                    element.style.position = "relative";
+                    element.addEventListener("dragover",function(e) {
+                        var maxHeight = 500;
+                        var maxWidth = 500;
+                        var cX = e.layerX/maxWidth;
+                        var cY = e.layerY/maxHeight;
+                        var pos = cX>cY//?["bottom","left"]0:["top","right"]1;
+                        pos = -maxWidth*cX-(maxHeight)*cY>0?pos?"left":"top":pos?"bottom":"right";
+                        console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
+                        if(pos === "top") {
+                            if(_glob.lastSet !== "top") {
+                                _glob.lastSet = "top";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("right");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("top");
+                            }
+                        } else if(pos === "left") {
+                            if(_glob.lastSet !== "left") {
+                                _glob.lastSet = "left";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("left");
+                            }
+                        } else if(pos === "right") {
+                            if(_glob.lastSet !== "right") {
+                                _glob.lastSet = "right";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("right");
+                            }
+                        } else if(pos === "bottom") {
+                            if(_glob.lastSet !== "bottom") {
+                                _glob.lastSet = "bottom";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("bottom");
+                            }
+                        } else {
+                            if(_glob.lastSet !== "center") {
+                                _glob.lastSet = "center";
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("center");
+                            }
+                        }
+                        console.log(e,_glob);
+                    })
+                    /**
+                     * 
+                     * @type {(1|2|3)}
+                     * @public
+                     */
+                    this.mode = 1;
+                    this.tabLayoutWrapper = element;
+                    this.tabs = {};
+                    this.setMode(1);
+                }
+                /**
+                 * 
+                 * @param {(1|2|3)} mode
+                 */
+                setMode(mode) {
+                    this.mode = mode;
+                    this.tabLayoutWrapper.style.flexDirection = mode > 2 ? "column" : "row";
+                    this.tabLayoutWrapper.children[1].style.display = mode > 1 ? "block" : "none";
+                }
+                /**
+                 * 
+                 * @param {string} id
+                 * @param {(1|2)} position
+                 * @param {boolean} active -Wether the tab should display over existing tabs
+                */
+                setTabPosition(id,position,active) {
+                    var oldPosition = this.tabs[id].position;
+                    this.tabs[id].position = position;
+                    this.tabs[id].active = active;
+                    var lastActiveIds = [false,false];
+                    for(var i in this.tabs) {
+                        if(this.tabs[i].position === 1) {
+                            if(!lastActiveIds[0] || this.tabs[i].active) {
+                                this.tabLayoutWrapper.children[0].children[1].innerHTML = "";
+                                this.tabLayoutWrapper.children[0].children[1].appendChild(this.tabs[i].tab.element);
+                                if(this.tabs[i].active) {
+                                    if(lastActiveIds[0]) {
+                                        this.tabs[lastActiveIds[0]].active = false;
+                                    }
+                                    lastActiveIds[0] = i;
+                                }
+                            }
+                        } else if(this.tabs[i].position === 2) {
+                            if(!lastActiveIds[1] || this.tabs[i].active) {
+                                this.tabLayoutWrapper.children[1].children[1].innerHTML = "";
+                                this.tabLayoutWrapper.children[1].children[1].appendChild(this.tabs[i].tab.element);
+                                if(this.tabs[i].active) {
+                                    if(lastActiveIds[1]) {
+                                        this.tabs[lastActiveIds[1]].active = false;
+                                    }
+                                    lastActiveIds[1] = i;
+                                }
+                            }
+                        }
+                        if(i === id && oldPosition !== position) {
+                            this.tabLayoutWrapper.children[position - 1].children[0].appendChild(this.tabLayoutWrapper.querySelector("[data-tab-id=" + id + "]"));
+                        }
+                        console.log(i,this.tabs[i]);
+                    }
+                }
+                /**
+                 * 
+                 * @param {Tab} tab
+                 * @param {(1|2)} position
+                 * @param {boolean} active -Wether the tab should display over existing tabs
+                */
+                addTab(tab,position,active) {
+                    this.tabs[tab.id] = {
+                        tab: tab,
+                        position: position,
+                        active: active
+                    };
+                    var tabName = document.createElement("div");
+                    tabName.classList.add("tab-name");
+                    tabName.setAttribute("data-tab-id",tab.id);
+                    tabName.innerText = tab.name;
+                    tabName.draggable = true;
+                    tabName.addEventListener("dragstart",function(e) {
+                        console.log(e);
+                    })
+                    console.log(this.tabLayoutWrapper.children[0].children);
+                    if(position === 1) {
+                        this.tabLayoutWrapper.children[0].children[0].appendChild(tabName);
+                    } else {
+                        this.tabLayoutWrapper.children[1].children[0].appendChild(tabName);
+                    }
+                    this.setTabPosition(tab.id,position,active);
+                }
+            }
+            class Tab {
+                /**
+                 * Creates a Tab object with an element created from the given id
+                 * @param {string} id
+                 * @constructor
+                 */
+                constructor(name,id) {
+                    /**
+                     * The name of the tab
+                     * @type {string}
+                     * @public
+                    */
+                    this.name = name;
+                    /**
+                     * The id of the tab
+                     * @type {string}
+                     * @public
+                    */
+                    this.id = id;
+                    /**
+                     * The tab element with the given id
+                     * @type {Element}
+                     * @public
+                    */
+                    this.element = document.createElement("div");
+                    this.element.id = id;
+                }
+                _connectTabLayout() {
+                    //
+                }
+            }
+            var myTabLayout = new TabLayout(document.querySelector("main"));
+            var myTab1 = new Tab("Tab1","tab1");
+            myTab1.element.innerHTML = "<input>";
+            var myTab2 = new Tab("Editor2","tab2");
+            myTab2.element.innerHTML = "<button>Click on Tab2</button>";
+            myTabLayout.addTab(myTab1,1,true);
+            myTabLayout.addTab(myTab2,1,true);
+        </script>
+    </body>
+</html>

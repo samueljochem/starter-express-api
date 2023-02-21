@@ -20,11 +20,12 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.get("/",function(req,res) {
     res.send("<h1>Hello</h1>");
 })
-app.get("/static",express.static(__dirname + "/static",{
+app.use("/static",express.static(__dirname+"/static"/*,{
     setHeaders: function(res,path,stat) {
-        res.set("X-Content-Type-Options");
+        console.log(req);
+        res.set("X-Content-Type-Options","sniff");
     }
-}));
+}*/));
 app.get("/admin",function(req,res) {
     handleAdmin(req,res,this,dbConnector);
 })
