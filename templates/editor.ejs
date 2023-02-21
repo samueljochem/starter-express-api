@@ -6,6 +6,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Edit post</title>
         <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+        <!--script src="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.17/js/froala_editor.min.js"></!--script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.17/css/froala_editor.min.css"-->
+        <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.26.5/dist/editor.min.js"></script>
         <!--script-- src="https://cdn.jsdelivr.net/npm/marked@4.2.12/lib/marked.umd.min.js"></!--script-->
         <script src="static/marked.min.js"></script>
         <style>
@@ -113,6 +116,7 @@
                 width: 0 !important;
                 height: 0 !important;
                 display: none !important;
+                overflow: hidden;
             }
         </style>
     </head>
@@ -425,11 +429,13 @@
             markdownTab.element.innerHTML = "<textarea></textarea>";
             var previewTab = new Tab("Preview","preview");
             previewTab.element.innerHTML = "<iframe></iframe>";
+            var ckEditorTab = new Tab("CKEditor","ckeditor");
 
-            tabLayout.addTab(markdownTab,1,true);
-            var textarea = document.querySelector("#md-editor>textarea");
-
+            tabLayout.addTab(markdownTab,1,false);
             tabLayout.addTab(previewTab,1,false);
+            tabLayout.addTab(ckEditorTab,1,true);
+            
+            var textarea = document.querySelector("#md-editor>textarea");
             var previewIframe = document.querySelector("#preview>iframe");
             textarea.addEventListener("input",function(e) {
                 //if(tabLayout.order.includes("preview")) {
@@ -438,6 +444,11 @@
                     updatePreviewOnShow = true;
                 }*/
             });
+            var ckEditor = document.querySelector("#ckeditor");
+            //var ed = ClassicEditor.create(ckEditor);
+            //var ed = new FroalaEditor(ckEditor);
+            var ed = new EditorJS(ckEditor.id);
+            console.log(ed);
 
 
         </script>
