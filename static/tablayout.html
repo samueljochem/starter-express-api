@@ -107,27 +107,42 @@
                     element.addEventListener("dragover",function(e) {
                         var maxHeight = 500;
                         var maxWidth = 500;
-                        if((e.layerX/maxWidth)>(e.layerY/maxHeight)){
-                            console.log("More top-right");
-                        }else{
-                            //
-                        }
+                        var cX = e.layerX/maxWidth;
+                        var cY = e.layerY/maxHeight;
+                        var pos = cX>cY//?["bottom","left"]0:["top","right"]1;
+                        pos = -maxWidth*cX-(maxHeight)*cY>0?pos?"left":"top":pos?"bottom":"right";
                         console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
-                        if(e.clientX < 75) {
+                        if(pos === "top") {
+                            if(_glob.lastSet !== "top") {
+                                _glob.lastSet = "top";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("right");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("top");
+                            }
+                        } else if(pos === "left") {
                             if(_glob.lastSet !== "left") {
                                 _glob.lastSet = "left";
-                                /*_glob.tabLayoutWrapper.children[2].classList.remove("right");
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
                                 _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
                                 _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
                                 _glob.tabLayoutWrapper.children[2].classList.add("left");
                             }
-                        } else if(e.clientX > 425) {
+                        } else if(pos === "right") {
                             if(_glob.lastSet !== "right") {
                                 _glob.lastSet = "right";
                                 /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
                                 _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
                                 _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
                                 _glob.tabLayoutWrapper.children[2].classList.add("right");
+                            }
+                        } else if(pos === "bottom") {
+                            if(_glob.lastSet !== "bottom") {
+                                _glob.lastSet = "bottom";
+                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                _glob.tabLayoutWrapper.children[2].classList.add("bottom");
                             }
                         } else {
                             if(_glob.lastSet !== "center") {
