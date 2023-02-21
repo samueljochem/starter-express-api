@@ -6,10 +6,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TabLayout</title>
         <style>
-            main {
+            :root{
                 --tab-height: 20px;
-                width: 1000px;
-                height: 500px;
+            }
+            html,body{
+                width: 99.9%;
+                height: 99.9%;
+                margin: 0;
+            }
+            main {
+                width: 100%;
+                height: 100%;
                 background-color: antiquewhite;
             }
 
@@ -19,11 +26,21 @@
                 width: 100%;
             }
 
-            .split-view,
-            .tab-content {
+            .tab-content,.tab-name{
+                outline: 1px inset gray;
+            }
+            
+            .split-view{
                 height: 100%;
                 width: 100%;
             }
+
+            .tab-content{
+                height: calc(100% - var(--tab-height));
+                width: 100%;
+            }
+
+            
 
             .split-view-preview.active {
                 pointer-events: none;
@@ -109,25 +126,11 @@
                     element.style.display = "flex";
                     element.style.position = "relative";
                     element.addEventListener("dragover",function(e) {
-                        var maxHeight = 500;
-                        var maxWidth = 1000;
-                        var cX = e.layerX//maxWidth;
-                        var cY = e.layerY//maxHeight;
-                        //console.log((0-maxWidth)*(cY-0)-(maxHeight-0)*(cX-maxWidth)>0);
-                        /*
-                        p1,a = (maxWidth,0)
-                        p2,b = (0,maxHeight)
-                        */
-                        var pos1 = (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth)//>maxWidth*maxHeight-(maxWidth-maxHeight)/2//>0?"left-top":"bottom-right";
-                        var pos3 = (0 - maxWidth) * (cX - 0) - (maxHeight - 0) * (cY - maxWidth) > 0 ? "--left-top--" : "--bottom-right--";
-                        /*
-                        p1,a = (0,0)
-                        p2,b = (maxWidth,maxHeight)
-                        */
-                        var pos2 = (0 - maxWidth) * (cY - 0) - (0 - maxHeight) * (cX - 0) > 0;
-                        var pos4 = (0 - maxWidth) * (cX - 0) - (0 - maxHeight) * (cY - 0) > 0;
-                        var pos = cX / maxWidth > cY / maxHeight;//?["bottom","left"]0:["top","right"]1;
-                        //console.log(pos1,pos2,pos3,pos4,pos);
+                        var maxHeight = _glob.tabLayoutWrapper.clientHeight;
+                        var maxWidth = _glob.tabLayoutWrapper.clientWidth;
+                        var cX = e.layerX;
+                        var cY = e.layerY;
+                        var pos = cX / maxWidth > cY / maxHeight;
                         pos = (cX > maxWidth / 4 && cX < maxWidth / 4 * 3 && cY > maxHeight / 4 && cY < maxHeight / 4 * 3) ? "center" :
                             (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth) > 0 ? pos ? "top" : "left" : pos ? "right" : "bottom";
                         console.log(pos)
@@ -188,6 +191,9 @@
                         } else if((["top","bottom"]).includes(_glob.lastSet)) {
                             _glob.setMode(3);
                             _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                        }else if(_glob.lastSet === "center"){
+                            _glob.setMode(1);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
                         }
                         _glob.lastSet = false;
                         _glob._lastDragId = false;
@@ -259,6 +265,7 @@
                  * @param {boolean} active -Wether the tab should display over existing tabs
                 */
                 addTab(tab,position,active) {
+                    var _glob = this;
                     this.tabs[tab.id] = {
                         tab: tab,
                         position: position,
@@ -288,6 +295,10 @@
                             _glob._lastDragId = false;
                         }
 
+                    })
+                    tabName.addEventListener("click",function(e){
+                        console.log(e,e.target,_glob)
+                        _glob.setTabPosition(e.target.getAttribute("data-tab-id"),_glob.tabs[e.target.getAttribute("data-tab-id")].position,true);
                     })
                     console.log(this.tabLayoutWrapper.children[0].children);
                     if(position === 1) {
