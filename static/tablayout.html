@@ -8,7 +8,7 @@
         <style>
             main {
                 --tab-height:20px;
-                width: 500px;
+                width: 1000px;
                 height: 500px;
                 background-color: antiquewhite;
             }
@@ -26,6 +26,7 @@
             }
 
             .split-view-preview.active {
+                pointer-events: none;
                 position: absolute;
                 left: 100%;
                 top: 100%;
@@ -34,7 +35,7 @@
                 height: calc(100% - var(--tab-height));
                 width: 100%;
                 background-color: rgba(100, 100, 100, 0.4);
-                transition: all 400ms ease-in-out;
+                transition: all 200ms ease-in-out 10ms;
             }
 
             .split-view-preview.active.left {
@@ -106,32 +107,35 @@
                     element.style.position = "relative";
                     element.addEventListener("dragover",function(e) {
                         var maxHeight = 500;
-                        var maxWidth = 500;
-                        var cX = e.layerX/maxWidth;
-                        var cY = e.layerY/maxHeight;
+                        var maxWidth = 1000;
+                        var cX = e.layerX//maxWidth;
+                        var cY = e.layerY//maxHeight;
+                        //console.log((0-maxWidth)*(cY-0)-(maxHeight-0)*(cX-maxWidth)>0);
                         /*
                         p1,a = (maxWidth,0)
                         p2,b = (0,maxHeight)
                         */
-                        var pos1 = (0-maxWidth)*(cY-0)-(maxHeight-0)*(cX-maxWidth)>0;
-                        var pos3 = (0-maxWidth)*(cX-0)-(maxHeight-0)*(cY-maxWidth)>0;
+                        var pos1 = (0-maxWidth)*(cY-0)-(maxHeight-0)*(cX-maxWidth)//>maxWidth*maxHeight-(maxWidth-maxHeight)/2//>0?"left-top":"bottom-right";
+                        var pos3 = (0-maxWidth)*(cX-0)-(maxHeight-0)*(cY-maxWidth)>0?"--left-top--":"--bottom-right--";
                         /*
                         p1,a = (0,0)
                         p2,b = (maxWidth,maxHeight)
                         */
                         var pos2 = (0-maxWidth)*(cY-0)-(0-maxHeight)*(cX-0)>0;
                         var pos4 = (0-maxWidth)*(cX-0)-(0-maxHeight)*(cY-0)>0;
-                        var pos = cX>cY//?["bottom","left"]0:["top","right"]1;
-                        console.log(pos1,pos2,pos3,pos4,pos);
-                        pos = -maxWidth*cX-(maxHeight)*cY>0?pos?"left":"top":pos?"bottom":"right";
-                        console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
+                        var pos = cX/maxWidth>cY/maxHeight;//?["bottom","left"]0:["top","right"]1;
+                        //console.log(pos1,pos2,pos3,pos4,pos);
+                        pos = (cX>maxWidth/4 && cX<maxWidth/4*3 && cY>maxHeight/4 && cY<maxHeight/4*3)?"center":
+                            (0-maxWidth)*(cY-0)-(maxHeight-0)*(cX-maxWidth)>0?pos?"top":"left":pos?"right":"bottom";
+                        console.log(pos)
+                        //console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
                         if(pos === "top") {
                             if(_glob.lastSet !== "top") {
                                 _glob.lastSet = "top";
                                 /*_glob.tabLayoutWrapper.children[2].classList.remove("right");
                                 _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
                                 _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                //_glob.tabLayoutWrapper.children[2].classList.add("top");
+                                _glob.tabLayoutWrapper.children[2].classList.add("top");
                             }
                         } else if(pos === "left") {
                             if(_glob.lastSet !== "left") {
@@ -139,7 +143,7 @@
                                 /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
                                 _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
                                 _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                //_glob.tabLayoutWrapper.children[2].classList.add("left");
+                                _glob.tabLayoutWrapper.children[2].classList.add("left");
                             }
                         } else if(pos === "right") {
                             if(_glob.lastSet !== "right") {
@@ -147,7 +151,7 @@
                                 /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
                                 _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
                                 _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                //_glob.tabLayoutWrapper.children[2].classList.add("right");
+                                _glob.tabLayoutWrapper.children[2].classList.add("right");
                             }
                         } else if(pos === "bottom") {
                             if(_glob.lastSet !== "bottom") {
@@ -155,16 +159,33 @@
                                 /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
                                 _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
                                 _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                //_glob.tabLayoutWrapper.children[2].classList.add("bottom");
+                                _glob.tabLayoutWrapper.children[2].classList.add("bottom");
                             }
                         } else {
                             if(_glob.lastSet !== "center") {
                                 _glob.lastSet = "center";
                                 _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                //_glob.tabLayoutWrapper.children[2].classList.add("center");
+                                _glob.tabLayoutWrapper.children[2].classList.add("center");
                             }
                         }
-                        console.log(e,_glob);
+                        //console.log(e,_glob);
+                    })
+                    element.addEventListener("dragover",function(e){
+                        console.log(e.dataTransfer.getData("text/plain"),_glob)
+                        if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
+                            e.preventDefault();
+                        }
+                    })
+                    element.addEventListener("drop",function(e){
+                        console.log(e,_glob)
+                        _glob.tabLayoutWrapper.children[2].classList.remove("active");
+                        if((["left","right"]).includes(_glob.lastSet)){
+                            _glob.setMode(2);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet==="right")+1,true);
+                        }else if((["top","bottom"]).includes(_glob.lastSet)){
+                            _glob.setMode(3);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet==="bottom")+1,true);
+                        }
                     })
                     /**
                      * 
@@ -245,6 +266,7 @@
                     tabName.draggable = true;
                     tabName.addEventListener("dragstart",function(e) {
                         console.log(e);
+                        e.dataTransfer.setData("text/plain","-tab-drag-id:"+e.target.getAttribute("data-tab-id"));
                     })
                     console.log(this.tabLayoutWrapper.children[0].children);
                     if(position === 1) {
@@ -281,6 +303,9 @@
                     */
                     this.element = document.createElement("div");
                     this.element.id = id;
+                    /*this.element.addEventListener("dragstart",function(e){
+                        e.setData("text/plain","-tab-drag-id:"+e.target.id);
+                    })*/
                 }
                 _connectTabLayout() {
                     //
