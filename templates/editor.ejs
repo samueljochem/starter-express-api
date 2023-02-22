@@ -5,19 +5,29 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Edit post</title>
-        <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+        <!--script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></!--script>
         <!--script src="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.17/js/froala_editor.min.js"></!--script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.17/css/froala_editor.min.css"-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/4.0.17/css/froala_editor.min.css">
         <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.26.5/dist/editor.min.js"></script>
         <!--script-- src="https://cdn.jsdelivr.net/npm/marked@4.2.12/lib/marked.umd.min.js"></!--script-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/mode/overlay.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/markdown/markdown.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+        <!--script-- src="https://cdn.jsdelivr.net/codemirror.spell-checker/latest/spell-checker.min.js"></!--script-->
         <script src="static/marked.min.js"></script>
         <style>
             :root {
                 --tab-height: 20px;
             }
 
+            * {
+                box-sizing: border-box;
+            }
+
             html,
             body {
+                font-family: sans-serif;
                 width: 99.9%;
                 height: 99.9%;
                 margin: 0;
@@ -27,6 +37,20 @@
                 width: 100%;
                 height: 100%;
                 background-color: antiquewhite;
+            }
+
+            del:after,
+            del:before {
+                contain: strict;
+                inset-block: 100% 0%;
+                position: relative;
+                content: "-";
+                overflow: hidden;
+                max-width: 1px;
+                width: 1px;
+                letter-spacing: 0;
+                word-spacing: 0;
+                text-decoration: 1px line-through black;
             }
 
             .tab-name-wrapper {
@@ -118,6 +142,22 @@
                 display: none !important;
                 overflow: hidden;
             }
+
+            #markdown-editor,
+            #markdown-editor>*,
+            #preview,
+            #preview>iframe {
+                width: 100%;
+                height: 100%;
+            }
+
+            #markdown-editor>div{
+                height: var(--tab-height);
+            }
+
+            #markdown-editor>.CodeMirror{
+                height: calc(100% - var(--tab-height));
+            }
         </style>
     </head>
     <body>
@@ -168,6 +208,7 @@
                         "</div>";
                     element.innerHTML = htmlContent + htmlContent + "<div class=\"split-view-preview\"></div><div class=\"temp-tabs\"></div>";
                     element.style.display = "flex";
+                    element.style.verticalAlign = "stretch";
                     element.style.position = "relative";
                     element.addEventListener("dragover",function(e) {
                         var maxHeight = _glob.tabLayoutWrapper.clientHeight;
@@ -177,7 +218,7 @@
                         var pos = cX / maxWidth > cY / maxHeight;
                         pos = (cX > maxWidth / 4 && cX < maxWidth / 4 * 3 && cY > maxHeight / 4 && cY < maxHeight / 4 * 3) ? "center" :
                             (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth) > 0 ? pos ? "top" : "left" : pos ? "right" : "bottom";
-                        console.log(pos)
+                        //console.log(pos)
                         //console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
                         if(pos === "top") {
                             if(_glob.lastSet !== "top") {
@@ -221,23 +262,29 @@
                         //console.log(e,_glob);
                     })
                     element.addEventListener("dragover",function(e) {
-                        console.log(e.dataTransfer.getData("text/plain"),_glob)
-                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
-                        e.preventDefault();
-                        //}
+                        //console.log(e,e.dataTransfer.getData("lText"),_glob);
+                        if(e.dataTransfer.getData("lText").startsWith("-tab-drag-id:")) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        /*if(e.dataTransfer.getData("lText").startsWith("-tab-drag-id:")){
+                            //e.preventDefault();
+                            //e.bubbles = false;
+                            e.stopPropagation();
+                        }*/
                     })
                     element.addEventListener("drop",function(e) {
                         console.log(e,_glob)
                         _glob.tabLayoutWrapper.children[2].classList.remove("active");
                         if((["left","right"]).includes(_glob.lastSet)) {
                             _glob.setMode(2);
-                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "right") + 1,true);
+                            _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),(_glob.lastSet === "right") + 1,true);
                         } else if((["top","bottom"]).includes(_glob.lastSet)) {
                             _glob.setMode(3);
-                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                            _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),(_glob.lastSet === "bottom") + 1,true);
                         } else if(_glob.lastSet === "center") {
                             _glob.setMode(1);
-                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
+                            _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),1,true)
                         }
                         _glob.lastSet = false;
                         _glob._lastDragId = false;
@@ -313,7 +360,7 @@
                     tabName.draggable = true;
                     tabName.addEventListener("dragstart",function(e) {
                         console.log(e);
-                        e.dataTransfer.setData("text/plain","-tab-drag-id:" + e.target.getAttribute("data-tab-id"));
+                        e.dataTransfer.setData("lText","-tab-drag-id:" + e.target.getAttribute("data-tab-id"));
                     })
                     tabName.addEventListener("touchleave",function(e) {
                         console.log(e,_glob);
@@ -321,10 +368,10 @@
                             _glob.tabLayoutWrapper.children[2].classList.remove("active");
                             if((["left","right"]).includes(_glob.lastSet)) {
                                 _glob.setMode(2);
-                                _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "right") + 1,true);
+                                _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),(_glob.lastSet === "right") + 1,true);
                             } else if((["top","bottom"]).includes(_glob.lastSet)) {
                                 _glob.setMode(3);
-                                _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                                _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),(_glob.lastSet === "bottom") + 1,true);
                             }
                             _glob.lastSet = false;
                             _glob._lastDragId = false;
@@ -372,7 +419,7 @@
                     this.element = document.createElement("div");
                     this.element.id = id;
                     /*this.element.addEventListener("dragstart",function(e){
-                        e.setData("text/plain","-tab-drag-id:"+e.target.id);
+                        e.setData("lText","-tab-drag-id:"+e.target.id);
                     })*/
                 }
                 _connectTabLayout() {
@@ -425,32 +472,193 @@
             })*/
 
             var tabLayout = new TabLayout(document.querySelector("main"));
-            var markdownTab = new Tab("Markdown","md-editor");
+            var markdownTab = new Tab("Options","options");
             markdownTab.element.innerHTML = "<textarea></textarea>";
             var previewTab = new Tab("Preview","preview");
             previewTab.element.innerHTML = "<iframe></iframe>";
-            var ckEditorTab = new Tab("CKEditor","ckeditor");
+            var cmEditorTab = new Tab("Markdown","markdown-editor");
+            cmEditorTab.element.innerHTML = "<div></div><textarea></textarea>";
 
             tabLayout.addTab(markdownTab,1,false);
             tabLayout.addTab(previewTab,1,false);
-            tabLayout.addTab(ckEditorTab,1,true);
-            
+            tabLayout.addTab(cmEditorTab,1,true);
+
             var textarea = document.querySelector("#md-editor>textarea");
             var previewIframe = document.querySelector("#preview>iframe");
-            textarea.addEventListener("input",function(e) {
+            /*textarea.addEventListener("input",function(e) {
                 //if(tabLayout.order.includes("preview")) {
                 previewIframe.srcdoc = marked.parse(e.target.value);
                 /*} else {
                     updatePreviewOnShow = true;
-                }*/
-            });
-            var ckEditor = document.querySelector("#ckeditor");
+                }*
+            });*/
+            var cmEditorButtons = document.querySelector("#markdown-editor>div");
+            cmEditorButtons.innerHTML =
+                "<button onclick='mdEditor.setHeading(1);'>H1</button>" +
+                "<button onclick='mdEditor.setHeading(2);'>H2</button>" +
+                "<button onclick='mdEditor.setHeading(3);'>H3</button>" +
+                "<button onclick='mdEditor.setHeading(4);'>H4</button>" +
+                "<button onclick='mdEditor.setHeading(5);'>H5</button>" +
+                "<button onclick='mdEditor.setHeading(6);'>H6</button>" +
+                "<button onclick='mdEditor.setBold();'><b>B</b></button>" +
+                "<button onclick='mdEditor.setItalic();'><i>i</i></button>" +
+                "<button onclick='mdEditor.setUnderline();'><u>U</u></button>" +
+                "<button onclick='mdEditor.setDel();'><del>a</del></button>";
+            var cmEditorArea = document.querySelector("#markdown-editor>textarea");
+            //var ckEditor = document.querySelector("#ckeditor");
             //var ed = ClassicEditor.create(ckEditor);
             //var ed = new FroalaEditor(ckEditor);
-            var ed = new EditorJS(ckEditor.id);
-            console.log(ed);
+            //var ed = new EditorJS(ckEditor.id);
+            /*CodeMirrorSpellChecker({
+                codeMirrorInstance: CodeMirror
+            });*/
+            var ed = CodeMirror.fromTextArea(cmEditorArea,{
+                inputStyle: "contenteditable",
+                spellcheck: true,
+                mode: "markdown"
+                /*mode: "spell-checker",
+                backdrop:"markdown"*/
+            });
 
+            class MarkdownEditor {
+                constructor(cm) {
+                    this.cm = cm;
+                }
+                setBold() {
+                    if(this.cm.getSelection()) {
+                        this.cm.replaceSelection("**" + this.cm.getSelection() + "**");
+                    } else {
+                        this.cm.replaceSelection("****");
+                        var cursorPos = this.cm.getCursor();
+                        cursorPos.ch -= 2;
+                        this.cm.setCursor(cursorPos);
+                    }
+                    this.cm.focus();
+                }
+                setItalic() {
+                    if(this.cm.getSelection()) {
+                        this.cm.replaceSelection("_" + this.cm.getSelection() + "_");
+                    } else {
+                        this.cm.replaceSelection("__");
+                        var cursorPos = this.cm.getCursor();
+                        cursorPos.ch -= 1;
+                        this.cm.setCursor(cursorPos);
+                    }
+                    this.cm.focus();
+                }
+                setItalic() {
+                    if(this.cm.getSelection()) {
+                        this.cm.replaceSelection("_" + this.cm.getSelection() + "_");
+                    } else {
+                        this.cm.replaceSelection("__");
+                        var cursorPos = this.cm.getCursor();
+                        cursorPos.ch -= 1;
+                        this.cm.setCursor(cursorPos);
+                    }
+                    this.cm.focus();
+                }
+                setDel() {
+                    if(this.cm.getSelection()) {
+                        this.cm.replaceSelection("~~" + this.cm.getSelection() + "~~");
+                    } else {
+                        this.cm.replaceSelection("~~~~");
+                        var cursorPos = this.cm.getCursor();
+                        cursorPos.ch -= 2;
+                        this.cm.setCursor(cursorPos);
+                    }
+                    this.cm.focus();
+                }
+                setUnderline() {
+                    if(this.cm.getSelection()) {
+                        this.cm.replaceSelection("<u>" + this.cm.getSelection() + "</u>");
+                    } else {
+                        this.cm.replaceSelection("<u></u>");
+                        var cursorPos = this.cm.getCursor();
+                        cursorPos.ch -= 4;
+                        this.cm.setCursor(cursorPos);
+                    }
+                    this.cm.focus();
+                }
+                setHeading(n) {
+                    var cursor = this.cm.getCursor();
+                    var selection = this.cm.getSelection();
+                    var oldValue = this.cm.doc.getValue();
+                    var newValue = oldValue.replace(/^[#]{1,6} /,"");
+                    this.cm.doc.setValue(newValue)
+                    console.log(this.cm);
+                    console.log(cursor)
+                    this.cm.setCursor(cursor.line,0);
+                    this.cm.replaceSelection((new Array(n + 1).join("#")) + " " + selection);
+                    this.cm.setCursor(cursor.line,cursor.ch + n + 1 - (oldValue.length - newValue.length));
+                    this.cm.focus();
+                }
+            }
 
+            var mdEditor = new MarkdownEditor(ed);
+
+            /*ed.on("dragover",function(cm,e) {
+                console.log(" 11over",e)
+                if(e.dataTransfer.getData("lText").startsWith("-tab-drag-id:")) {
+                    //e.preventDefault();
+                    //return false;
+                }
+            });
+            ed.on("drop",function(cm,e) {
+                console.log(" -----drop",e)
+            });
+            ed.on("dragenter",function(cm,e) {
+                console.log(" -----enter",e)
+                e.preventDefault();
+            });
+            ed.on("dragleave",function(cm,e) {
+                console.log(" -----leave",e)
+                e.preventDefault();
+            });*/
+            ed.on("change",function(cm) {
+                console.log("changed",cm.getValue())
+                previewIframe.srcdoc = marked.parse(cm.getValue());
+            });
+            ed.on("keydown",function(cm,e) {
+                if(e.ctrlKey && e.key === "b") {
+                    /*if(cm.getSelection()){
+                        cm.replaceSelection("**"+cm.getSelection()+"**");
+                    }else{
+                        cm.replaceSelection("****");
+                        var cursorPos = cm.getCursor();
+                        cursorPos.ch -= 2;
+                        cm.setCursor(cursorPos);
+                    }*/
+                    mdEditor.setBold();
+                    e.preventDefault();
+                } else if(e.ctrlKey && e.key === "i") {
+                    mdEditor.setItalic();
+                    e.preventDefault();
+                } else if(e.ctrlKey && e.key === "d") {
+                    mdEditor.setDel();
+                    e.preventDefault();
+                } else if(e.ctrlKey && e.key === "h") {
+                    mdEditor.setHeading(1);
+                    e.preventDefault();
+                } else if(e.ctrlKey && e.key === "u") {
+                    mdEditor.setUnderline();
+                    e.preventDefault();
+                }
+                console.log(cm,cm.getSelection(),e);
+            });
+            /*ckEditor.addEventListener("keyup",function(e){
+                console.log(e);
+            })*/
+            /*var ed = CodeMirror(ckEditor,{
+                mode: "spell-checker",
+                backdrop:"markdown"
+            });*/
+            //ed.update()
+            console.log(ed,ed.getTextArea());
         </script>
+        <style>
+            .cm-spell-error {
+                background-color: rgba(255, 0, 0, 0.5);
+            }
+        </style>
     </body>
 </html>
