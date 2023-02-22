@@ -35,8 +35,8 @@
             }
 
             main {
-                width: 90%;
-                height: 90%;
+                width: 100%;
+                height: 100%;
                 background-color: antiquewhite;
             }
 
@@ -60,7 +60,8 @@
                 width: 100%;
             }
 
-            .tab-name{
+            .tab-name {
+                /*touch-action: none;
                 /*touch-action: manipulation;
                 overscroll-behavior: none;*/
             }
@@ -149,6 +150,10 @@
                 overflow: hidden;
             }
 
+            #preview>iframe {
+                pointer-events: none;
+            }
+
             #markdown-editor,
             #markdown-editor>*,
             #preview,
@@ -157,11 +162,11 @@
                 height: 100%;
             }
 
-            #markdown-editor>div{
+            #markdown-editor>div {
                 height: var(--tab-height);
             }
 
-            #markdown-editor>.CodeMirror{
+            #markdown-editor>.CodeMirror {
                 height: calc(100% - var(--tab-height));
             }
         </style>
@@ -269,30 +274,19 @@
                     })
                     element.addEventListener("dragover",function(e) {
                         //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
-                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
+                        if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
+                            e.dataTransfer.effectAllowed = 'move';
                             e.preventDefault();
                             //return false;
-                        //}
+                        }
                         /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
                             //e.preventDefault();
                             //e.bubbles = false;
                             e.stopPropagation();
                         }*/
                     })
-                    element.addEventListener("dragenter",function(e) {
-                        //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
-                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
-                            e.preventDefault();
-                            //return false;
-                        //}
-                        /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
-                            //e.preventDefault();
-                            //e.bubbles = false;
-                            e.stopPropagation();
-                        }*/
-                    })
-                    element.addEventListener("drop",function(e) {
-                        console.log(e,_glob)
+                    element.addEventListener("dragexit",function(e) {
+                        console.log(e,_glob,e.dataTransfer.getData("text/plain"))
                         _glob.tabLayoutWrapper.children[2].classList.remove("active");
                         if((["left","right"]).includes(_glob.lastSet)) {
                             _glob.setMode(2);
@@ -306,6 +300,24 @@
                         }
                         _glob.lastSet = false;
                         _glob._lastDragId = false;
+                        e.preventDefault();
+                    })
+                    element.addEventListener("drop",function(e) {
+                        console.log(e,_glob,e.dataTransfer.getData("text/plain"))
+                        _glob.tabLayoutWrapper.children[2].classList.remove("active");
+                        if((["left","right"]).includes(_glob.lastSet)) {
+                            _glob.setMode(2);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "right") + 1,true);
+                        } else if((["top","bottom"]).includes(_glob.lastSet)) {
+                            _glob.setMode(3);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                        } else if(_glob.lastSet === "center") {
+                            _glob.setMode(1);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
+                        }
+                        _glob.lastSet = false;
+                        _glob._lastDragId = false;
+                        e.preventDefault();
                     })
                     /**
                      * 
@@ -395,6 +407,9 @@
                             } else if((["top","bottom"]).includes(_glob.lastSet)) {
                                 _glob.setMode(3);
                                 _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                            } else if(_glob.lastSet === "center") {
+                                _glob.setMode(1);
+                                _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
                             }
                             _glob.lastSet = false;
                             _glob._lastDragId = false;
@@ -502,9 +517,9 @@
             var cmEditorTab = new Tab("Markdown","markdown-editor");
             cmEditorTab.element.innerHTML = "<div></div><textarea></textarea>";
 
-            tabLayout.addTab(markdownTab,1,false);
+            tabLayout.addTab(markdownTab,1,true);
+            tabLayout.addTab(cmEditorTab,1,false);
             tabLayout.addTab(previewTab,1,false);
-            tabLayout.addTab(cmEditorTab,1,true);
 
             var textarea = document.querySelector("#md-editor>textarea");
             var previewIframe = document.querySelector("#preview>iframe");
@@ -536,6 +551,7 @@
                 codeMirrorInstance: CodeMirror
             });*/
             var ed = CodeMirror.fromTextArea(cmEditorArea,{
+                dragDrop: false,
                 inputStyle: "contenteditable",
                 spellcheck: true,
                 mode: "markdown"
@@ -619,24 +635,27 @@
 
             var mdEditor = new MarkdownEditor(ed);
 
-            /*ed.on("dragover",function(cm,e) {
+            ed.on("dragover",function(cm,e) {
                 console.log(" 11over",e)
                 if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
-                    //e.preventDefault();
-                    //return false;
+                    e.preventDefault();
+                    return false;
                 }
             });
             ed.on("drop",function(cm,e) {
                 console.log(" -----drop",e)
+                e.preventDefault();
+                return false;
             });
             ed.on("dragenter",function(cm,e) {
                 console.log(" -----enter",e)
-                e.preventDefault();
+                //e.preventDefault();
+                //return false;
             });
             ed.on("dragleave",function(cm,e) {
                 console.log(" -----leave",e)
-                e.preventDefault();
-            });*/
+                //e.preventDefault();
+            });
             ed.on("change",function(cm) {
                 console.log("changed",cm.getValue())
                 previewIframe.srcdoc = marked.parse(cm.getValue());
