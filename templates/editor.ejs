@@ -28,15 +28,15 @@
             html,
             body {
                 font-family: sans-serif;
-                width: 99.9%;
-                height: 99.9%;
+                //width: 99.9%;
+                //height: 99.9%;
                 margin: 0;
-                overscroll-behavior: contain;
+                //overscroll-behavior: contain;
             }
 
             main {
-                width: 100%;
-                height: 100%;
+                width: 90%;
+                height: 90%;
                 background-color: antiquewhite;
             }
 
@@ -58,6 +58,11 @@
                 display: flex;
                 height: var(--tab-height);
                 width: 100%;
+            }
+
+            .tab-name{
+                /*touch-action: manipulation;
+                overscroll-behavior: none;*/
             }
 
             .tab-content,
@@ -263,12 +268,24 @@
                         //console.log(e,_glob);
                     })
                     element.addEventListener("dragover",function(e) {
-                        //console.log(e,e.dataTransfer.getData("lText"),_glob);
-                        if(e.dataTransfer.getData("lText").startsWith("-tab-drag-id:")) {
+                        //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
+                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
                             e.preventDefault();
-                            return false;
-                        }
-                        /*if(e.dataTransfer.getData("lText").startsWith("-tab-drag-id:")){
+                            //return false;
+                        //}
+                        /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
+                            //e.preventDefault();
+                            //e.bubbles = false;
+                            e.stopPropagation();
+                        }*/
+                    })
+                    element.addEventListener("dragenter",function(e) {
+                        //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
+                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
+                            e.preventDefault();
+                            //return false;
+                        //}
+                        /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
                             //e.preventDefault();
                             //e.bubbles = false;
                             e.stopPropagation();
@@ -279,13 +296,13 @@
                         _glob.tabLayoutWrapper.children[2].classList.remove("active");
                         if((["left","right"]).includes(_glob.lastSet)) {
                             _glob.setMode(2);
-                            _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),(_glob.lastSet === "right") + 1,true);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "right") + 1,true);
                         } else if((["top","bottom"]).includes(_glob.lastSet)) {
                             _glob.setMode(3);
-                            _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
                         } else if(_glob.lastSet === "center") {
                             _glob.setMode(1);
-                            _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),1,true)
+                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
                         }
                         _glob.lastSet = false;
                         _glob._lastDragId = false;
@@ -359,9 +376,14 @@
                     tabName.setAttribute("data-tab-id",tab.id);
                     tabName.innerText = tab.name;
                     tabName.draggable = true;
+                    tabName.addEventListener("touchstart",function(e) {
+                        //console.log(e);
+                        /*e.preventDefault();
+                        return false;*/
+                    })
                     tabName.addEventListener("dragstart",function(e) {
                         console.log(e);
-                        e.dataTransfer.setData("lText","-tab-drag-id:" + e.target.getAttribute("data-tab-id"));
+                        e.dataTransfer.setData("text/plain","-tab-drag-id:" + e.target.getAttribute("data-tab-id"));
                     })
                     tabName.addEventListener("touchleave",function(e) {
                         console.log(e,_glob);
@@ -369,10 +391,10 @@
                             _glob.tabLayoutWrapper.children[2].classList.remove("active");
                             if((["left","right"]).includes(_glob.lastSet)) {
                                 _glob.setMode(2);
-                                _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),(_glob.lastSet === "right") + 1,true);
+                                _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "right") + 1,true);
                             } else if((["top","bottom"]).includes(_glob.lastSet)) {
                                 _glob.setMode(3);
-                                _glob.setTabPosition(e.dataTransfer.getData("lText").substr(13),(_glob.lastSet === "bottom") + 1,true);
+                                _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
                             }
                             _glob.lastSet = false;
                             _glob._lastDragId = false;
@@ -420,7 +442,7 @@
                     this.element = document.createElement("div");
                     this.element.id = id;
                     /*this.element.addEventListener("dragstart",function(e){
-                        e.setData("lText","-tab-drag-id:"+e.target.id);
+                        e.setData("text/plain","-tab-drag-id:"+e.target.id);
                     })*/
                 }
                 _connectTabLayout() {
@@ -599,7 +621,7 @@
 
             /*ed.on("dragover",function(cm,e) {
                 console.log(" 11over",e)
-                if(e.dataTransfer.getData("lText").startsWith("-tab-drag-id:")) {
+                if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
                     //e.preventDefault();
                     //return false;
                 }
