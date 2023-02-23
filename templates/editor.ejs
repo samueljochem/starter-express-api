@@ -60,8 +60,7 @@
                 width: 100%;
             }
 
-            .tab-name {
-                /*touch-action: none;
+            .tab-name{
                 /*touch-action: manipulation;
                 overscroll-behavior: none;*/
             }
@@ -150,23 +149,20 @@
                 overflow: hidden;
             }
 
-            #preview>iframe {
-                pointer-events: none;
-            }
-
             #markdown-editor,
             #markdown-editor>*,
             #preview,
             #preview>iframe {
                 width: 100%;
                 height: 100%;
+                /*pointer-events: none;*/
             }
 
-            #markdown-editor>div {
+            #markdown-editor>div{
                 height: var(--tab-height);
             }
 
-            #markdown-editor>.CodeMirror {
+            #markdown-editor>.CodeMirror{
                 height: calc(100% - var(--tab-height));
             }
         </style>
@@ -274,36 +270,30 @@
                     })
                     element.addEventListener("dragover",function(e) {
                         //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
-                        if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
-                            e.dataTransfer.effectAllowed = 'move';
+                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
                             e.preventDefault();
                             //return false;
-                        }
+                        //}
                         /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
                             //e.preventDefault();
                             //e.bubbles = false;
                             e.stopPropagation();
                         }*/
                     })
-                    element.addEventListener("dragexit",function(e) {
-                        console.log(e,_glob,e.dataTransfer.getData("text/plain"))
-                        _glob.tabLayoutWrapper.children[2].classList.remove("active");
-                        if((["left","right"]).includes(_glob.lastSet)) {
-                            _glob.setMode(2);
-                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "right") + 1,true);
-                        } else if((["top","bottom"]).includes(_glob.lastSet)) {
-                            _glob.setMode(3);
-                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
-                        } else if(_glob.lastSet === "center") {
-                            _glob.setMode(1);
-                            _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
-                        }
-                        _glob.lastSet = false;
-                        _glob._lastDragId = false;
-                        e.preventDefault();
+                    element.addEventListener("dragenter",function(e) {
+                        //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
+                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
+                            e.preventDefault();
+                            //return false;
+                        //}
+                        /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
+                            //e.preventDefault();
+                            //e.bubbles = false;
+                            e.stopPropagation();
+                        }*/
                     })
                     element.addEventListener("drop",function(e) {
-                        console.log(e,_glob,e.dataTransfer.getData("text/plain"))
+                        console.log(e,_glob)
                         _glob.tabLayoutWrapper.children[2].classList.remove("active");
                         if((["left","right"]).includes(_glob.lastSet)) {
                             _glob.setMode(2);
@@ -317,7 +307,10 @@
                         }
                         _glob.lastSet = false;
                         _glob._lastDragId = false;
-                        e.preventDefault();
+                      e.preventDefault();
+                      for(var i in _glob.tabs){
+                        _glob.tabs[i].tab.element.style.pointerEvents = "auto";
+                      }
                     })
                     /**
                      * 
@@ -394,8 +387,18 @@
                         return false;*/
                     })
                     tabName.addEventListener("dragstart",function(e) {
-                        console.log(e);
+                        console.log(e,_glob.tabs);
                         e.dataTransfer.setData("text/plain","-tab-drag-id:" + e.target.getAttribute("data-tab-id"));
+                      for(var i in _glob.tabs){
+                        _glob.tabs[i].tab.element.style.pointerEvents = "none";
+                      }
+                      /*_glob.tabs.forEach(function(tab){
+                        console.log("Disable",tab)
+                        tab.style.pointerEvents = "none";
+                        tab.children.forEach(function(tabChild){
+                          tabChild.style.pointerEvents = "none";
+                        })
+                      })*/
                     })
                     tabName.addEventListener("touchleave",function(e) {
                         console.log(e,_glob);
@@ -407,9 +410,6 @@
                             } else if((["top","bottom"]).includes(_glob.lastSet)) {
                                 _glob.setMode(3);
                                 _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),(_glob.lastSet === "bottom") + 1,true);
-                            } else if(_glob.lastSet === "center") {
-                                _glob.setMode(1);
-                                _glob.setTabPosition(e.dataTransfer.getData("text/plain").substr(13),1,true)
                             }
                             _glob.lastSet = false;
                             _glob._lastDragId = false;
@@ -517,9 +517,9 @@
             var cmEditorTab = new Tab("Markdown","markdown-editor");
             cmEditorTab.element.innerHTML = "<div></div><textarea></textarea>";
 
-            tabLayout.addTab(markdownTab,1,true);
-            tabLayout.addTab(cmEditorTab,1,false);
+            tabLayout.addTab(markdownTab,1,false);
             tabLayout.addTab(previewTab,1,false);
+            tabLayout.addTab(cmEditorTab,1,true);
 
             var textarea = document.querySelector("#md-editor>textarea");
             var previewIframe = document.querySelector("#preview>iframe");
@@ -551,7 +551,6 @@
                 codeMirrorInstance: CodeMirror
             });*/
             var ed = CodeMirror.fromTextArea(cmEditorArea,{
-                dragDrop: false,
                 inputStyle: "contenteditable",
                 spellcheck: true,
                 mode: "markdown"
@@ -620,15 +619,19 @@
                 }
                 setHeading(n) {
                     var cursor = this.cm.getCursor();
-                    var selection = this.cm.getSelection();
-                    var oldValue = this.cm.doc.getValue();
+                    //this.cm.execCommand("goLineEnd");
+                    var oldValue = this.cm.doc.getLine(cursor.line)//.split("\n")[cursor.line];
                     var newValue = oldValue.replace(/^[#]{1,6} /,"");
-                    this.cm.doc.setValue(newValue)
-                    console.log(this.cm);
-                    console.log(cursor)
-                    this.cm.setCursor(cursor.line,0);
-                    this.cm.replaceSelection((new Array(n + 1).join("#")) + " " + selection);
+                    //this.cm.doc.setValue(newValue)
+                    console.log(this.cm.doc);
+                    console.log(oldValue);
+                    console.log(newValue);
+                    //console.log(selection);
+                    console.log(cursor);
+                    this.cm.setSelection({line:cursor.line,ch:0},{line:cursor.line,ch:oldValue.length});
+                    this.cm.replaceSelection((new Array(n + 1).join("#")) + " " + newValue);
                     this.cm.setCursor(cursor.line,cursor.ch + n + 1 - (oldValue.length - newValue.length));
+                    //this.cm.execCommand("killLine");
                     this.cm.focus();
                 }
             }
@@ -638,7 +641,8 @@
             ed.on("dragover",function(cm,e) {
                 console.log(" 11over",e)
                 if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
-                    e.preventDefault();
+                    e.stopPropagation();
+                    //e.preventDefault();
                     return false;
                 }
             });
@@ -651,9 +655,13 @@
                 console.log(" -----enter",e)
                 //e.preventDefault();
                 //return false;
+                if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
+                    //e.target.style.pointerEvents = "none";
+                }
             });
             ed.on("dragleave",function(cm,e) {
                 console.log(" -----leave",e)
+                //e.target.style.pointerEvents = "unset";
                 //e.preventDefault();
             });
             ed.on("change",function(cm) {
