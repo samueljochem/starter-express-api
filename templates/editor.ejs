@@ -11,8 +11,18 @@
         <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.26.5/dist/editor.min.js"></script>
         <!--script-- src="https://cdn.jsdelivr.net/npm/marked@4.2.12/lib/marked.umd.min.js"></!--script-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+        <script src="static/clike.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/wrap/hardwrap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/mode/overlay.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/htmlembedded/htmlembedded.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/htmlmixed/htmlmixed.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/markdown/markdown.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/css/css.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/gfm/gfm.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
         <!--script-- src="https://cdn.jsdelivr.net/codemirror.spell-checker/latest/spell-checker.min.js"></!--script-->
         <script src="static/marked.min.js"></script>
@@ -60,7 +70,8 @@
                 width: 100%;
             }
 
-            .tab-name{
+            .tab-name {
+                cursor: pointer;
                 /*touch-action: manipulation;
                 overscroll-behavior: none;*/
             }
@@ -158,11 +169,11 @@
                 /*pointer-events: none;*/
             }
 
-            #markdown-editor>div{
+            #markdown-editor>div {
                 height: var(--tab-height);
             }
 
-            #markdown-editor>.CodeMirror{
+            #markdown-editor>.CodeMirror {
                 height: calc(100% - var(--tab-height));
             }
         </style>
@@ -271,8 +282,8 @@
                     element.addEventListener("dragover",function(e) {
                         //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
                         //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
-                            e.preventDefault();
-                            //return false;
+                        e.preventDefault();
+                        //return false;
                         //}
                         /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
                             //e.preventDefault();
@@ -283,8 +294,8 @@
                     element.addEventListener("dragenter",function(e) {
                         //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
                         //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
-                            e.preventDefault();
-                            //return false;
+                        e.preventDefault();
+                        //return false;
                         //}
                         /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
                             //e.preventDefault();
@@ -307,10 +318,10 @@
                         }
                         _glob.lastSet = false;
                         _glob._lastDragId = false;
-                      e.preventDefault();
-                      for(var i in _glob.tabs){
-                        _glob.tabs[i].tab.element.style.pointerEvents = "auto";
-                      }
+                        e.preventDefault();
+                        for(var i in _glob.tabs) {
+                            _glob.tabs[i].tab.element.style.pointerEvents = "auto";
+                        }
                     })
                     /**
                      * 
@@ -389,16 +400,16 @@
                     tabName.addEventListener("dragstart",function(e) {
                         console.log(e,_glob.tabs);
                         e.dataTransfer.setData("text/plain","-tab-drag-id:" + e.target.getAttribute("data-tab-id"));
-                      for(var i in _glob.tabs){
-                        _glob.tabs[i].tab.element.style.pointerEvents = "none";
-                      }
-                      /*_glob.tabs.forEach(function(tab){
-                        console.log("Disable",tab)
-                        tab.style.pointerEvents = "none";
-                        tab.children.forEach(function(tabChild){
-                          tabChild.style.pointerEvents = "none";
-                        })
-                      })*/
+                        for(var i in _glob.tabs) {
+                            _glob.tabs[i].tab.element.style.pointerEvents = "none";
+                        }
+                        /*_glob.tabs.forEach(function(tab){
+                          console.log("Disable",tab)
+                          tab.style.pointerEvents = "none";
+                          tab.children.forEach(function(tabChild){
+                            tabChild.style.pointerEvents = "none";
+                          })
+                        })*/
                     })
                     tabName.addEventListener("touchleave",function(e) {
                         console.log(e,_glob);
@@ -466,6 +477,19 @@
             }
         </script>
         <script>
+            //CodeMirror.defineMIME("java",{name:"text/x-java"});
+            var markedOptions = {
+                renderer: {
+                    image: function image(href,title,text) {
+                        return `
+                        <picture>
+                            <img alt="${text}" src="${href}">
+                        </picture>
+                        `;
+                    }
+                }
+            }
+            marked.use(markedOptions);
             /*ClassicEditor
                 .create(document.querySelector("#ckeditor"));
             var editor = document.querySelector("#md-editor");
@@ -515,7 +539,34 @@
             var previewTab = new Tab("Preview","preview");
             previewTab.element.innerHTML = "<iframe></iframe>";
             var cmEditorTab = new Tab("Markdown","markdown-editor");
-            cmEditorTab.element.innerHTML = "<div></div><textarea></textarea>";
+            cmEditorTab.element.innerHTML = `
+            <div></div><textarea>
+# Hello
+
+- Hello
+1. No way
+1. Really
+   1. Nested
+1. Nice
+
+\`\`\`javascript
+    var i = 0;
+\`\`\`
+
+\`\`\`xml
+   <xml></xml>
+\`\`\`
+
+ \`\`\`java
+   void main(){}
+\`\`\`
+
+\`\`\`css
+    @import url;
+   #id.class{
+       color: red;
+   }
+\`\`\`</textarea>`;
 
             tabLayout.addTab(markdownTab,1,false);
             tabLayout.addTab(previewTab,1,false);
@@ -551,9 +602,11 @@
                 codeMirrorInstance: CodeMirror
             });*/
             var ed = CodeMirror.fromTextArea(cmEditorArea,{
+                lineWrapping: true,
+                matchBrackets: true,
                 inputStyle: "contenteditable",
-                spellcheck: true,
-                mode: "markdown"
+                //spellcheck: true,
+                mode: "gfm"
                 /*mode: "spell-checker",
                 backdrop:"markdown"*/
             });
@@ -628,7 +681,7 @@
                     console.log(newValue);
                     //console.log(selection);
                     console.log(cursor);
-                    this.cm.setSelection({line:cursor.line,ch:0},{line:cursor.line,ch:oldValue.length});
+                    this.cm.setSelection({line: cursor.line,ch: 0},{line: cursor.line,ch: oldValue.length});
                     this.cm.replaceSelection((new Array(n + 1).join("#")) + " " + newValue);
                     this.cm.setCursor(cursor.line,cursor.ch + n + 1 - (oldValue.length - newValue.length));
                     //this.cm.execCommand("killLine");
@@ -664,8 +717,28 @@
                 //e.target.style.pointerEvents = "unset";
                 //e.preventDefault();
             });
-            ed.on("change",function(cm) {
-                console.log("changed",cm.getValue())
+            /*setInterval(function(){
+                var cmTags = document.querySelectorAll(".cm-tag")||[];
+                cmTags.forEach(function(cmTag){
+                    if(cmTag.innerText === "u" && cmTag.nextElementSibling && cmTag.nextElementSibling.nextElementSibling){
+                        var textStart = cmTag.nextElementSibling.nextElementSibling;
+                        while(textStart.nextElementSibling){
+                            if(textStart.innerText === "</u>" || 
+                                (textStart.innerText === "</" &&
+                                textStart.nextElementSibling &&
+                                textStart.nextElementSibling.innerText === "u")){
+                                    break;
+                                    console.log(textStart)
+                                }
+                            textStart.classList.add("cm-underline");
+                            textStart = textStart.nextElementSibling;
+                        }
+                    }
+                })
+            },500);*/
+            ed.on("change",function(cm,changes) {
+
+                console.log("changed",cm);
                 previewIframe.srcdoc = marked.parse(cm.getValue());
             });
             ed.on("keydown",function(cm,e) {
@@ -708,6 +781,15 @@
         <style>
             .cm-spell-error {
                 background-color: rgba(255, 0, 0, 0.5);
+            }
+
+            .cm-underline {
+                text-decoration: 1px underline black;
+            }
+
+            .CodeMirror-line{
+                white-space: pre-wrap;
+                word-break: break-word !important;
             }
         </style>
     </body>
