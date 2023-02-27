@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uploads</title>
+    <style>
+        *{
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        html,body{
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+        #files{
+            display: flex;
+            flex-wrap: wrap;
+        }
+        #files>.f-wrapper{
+            width: 84px;
+            height: 104px;
+            margin: 5px;
+            text-align: center;
+        }
+        #files>.f-wrapper.f-selected{
+            background-color: grey;
+        }
+        #files>.f-wrapper *{
+            pointer-events: none;
+        }
+        #files>.f-wrapper>div{
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #files>.f-wrapper>.f-name{
+            width: 100%;
+            word-wrap: break-word;
+            /*white-space: pre-line;*/
+            overflow-wrap: break-word;
+            display: inline-block;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #files>.f-wrapper>.file-icon>svg{
+            transform: translateX(2.5px);
+        }
+        #files>.f-wrapper>.file-icon>span{
+            text-transform: uppercase;
+            background-color: red;
+            color: whitesmoke;
+            position: absolute;
+            /*transform: translate(calc(-30px - 50%),21px);*/
+            transform: translate(-2.5px,5px);
+            font-size: 11px !important;
+            font-family: sans-serif !important;
+            padding: 1px !important;
+            width: 32px;
+            text-align: center;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .dialog-wrapper{
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(0,0,0,0.4);
+            backdrop-filter: blur(7px);
+        }
+        .dialog-wrapper>.dialog-box{
+            margin: auto;
+            display: inline-block;
+            position: relative;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            background-color: white;
+            border-radius: 0.5rem;
+            max-width: 300px;
+        }
+        .dialog-wrapper>.dialog-box>hr{
+            margin: 0;
+            color: rgba(100,100,100,0.4);
+        }
+        .dialog-wrapper>.dialog-box>.dialog-head,
+        .dialog-wrapper>.dialog-box>.dialog-actions{
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            user-select: none;
+        }
+        .dialog-wrapper>.dialog-box>.dialog-content{
+            min-height: 150px;
+            padding: 0.5rem;
+        }
+        .dialog-wrapper>.dialog-box>.dialog-actions{
+            justify-content: end;
+        }
+        .dialog-wrapper>.dialog-box>.dialog-actions>button{
+            border-radius: 0.5rem;
+            border: 0;
+            padding: 0.3rem;
+            color: white;
+            cursor: pointer;
+        }
+        .dialog-wrapper>.dialog-box>.dialog-head>.dialog-close{
+            color: red;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="toolbar"></div>
+    <div id="explorer">
+        <div></div>
+        <div id="files">
+            <% for(var i in fileUploads.childs){ %>
+                <div class="f-wrapper">
+                    <% if(fileUploads.childs[i].type === "file"){ %>
+                    <div class="file-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="48" height="48" viewBox="0,0,256,256">
+                            <g transform="scale(5.33333,5.33333)">
+                                <path d="M39,16v25c0,1.105 -0.895,2 -2,2h-26c-1.105,0 -2,-0.895 -2,-2v-34c0,-1.105 0.895,-2 2,-2h17z" fill="#cccccc"></path>
+                                <path d="M28,5v9c0,1.105 0.895,2 2,2h9z" fill="#777777"></path>
+                            </g>
+                        </svg>
+                        <span><%= i.split('.').pop() %></span>
+                    </div>
+                    <% }else{ %>
+                    <div class="folder-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="48" height="48" viewBox="0 0 48 48">
+                            <path fill="#FFA000" d="M40,12H22l-4-4H8c-2.2,0-4,1.8-4,4v8h40v-4C44,13.8,42.2,12,40,12z"></path>
+                            <path fill="#FFCA28" d="M40,12H8c-2.2,0-4,1.8-4,4v20c0,2.2,1.8,4,4,4h32c2.2,0,4-1.8,4-4V16C44,13.8,42.2,12,40,12z"></path>
+                        </svg>
+                    </div>
+                    <% } %>
+                    <span class="f-name"><%= i %></span>
+                </div>
+            <% } %>
+        </div>
+    </div>
+    
+    <div>
+        <input hidden type="file">
+        <button id="up-button">Upload</button>
+    </div>
+    <div>
+        <button id="del-button">Delete</button>
+    </div>
+    
+    <%# JSON.stringify(fileUploads) %>
+    <script>
+        class DialogWindow{
+            constructor(title/*,type*/,actions,content){
+                var _glob = this;
+                this.title = title;
+                //this.type = type;
+                this.actions = actions;
+                this.content = content;
+                this.element = document.createElement("div");
+                this.element.classList.add("dialog-wrapper");
+                this.element.innerHTML = `
+                <div class="dialog-box">
+                    <div class="dialog-head">
+                        <div class="dialog-title"></div>
+                        <div class="dialog-close">X</div>
+                    </div>
+                    <hr>
+                    <div class="dialog-content"></div>
+                    <hr>
+                    <div class="dialog-actions"></div>
+                </div>
+                `;
+                this.element.querySelector(".dialog-title").innerText = title;
+                this.element.querySelector(".dialog-close").addEventListener("click",function(){
+                    _glob.hide();
+                })
+                this.element.querySelector(".dialog-content").innerHTML = content;
+                var ACTIONS = {
+                    "danger":"red",
+                    "info":"blue",
+                    "ok":"green"
+                }
+                for(var i of actions){
+                    var button = document.createElement("button");
+                    button.style.backgroundColor = ACTIONS[(i.level||"info")];
+                    button.innerText = i.name;
+                    button.onclick = function(e){
+                        i.onClicked(e,_glob);
+                    };
+                    this.element.querySelector(".dialog-actions").appendChild(button);
+                }
+            }
+            show(){
+                document.body.appendChild(this.element);
+                this.element.style.display = "block";
+            }
+            hide(){
+                this.element.style.display = "none";
+            }
+            setContent(html){
+                this.element.querySelector(".dialog-content").innerHTML = html;
+            }
+        }
+        var deleteFile = new DialogWindow("Delete file",[
+            {
+                name:"Delete",
+                level:"danger",
+                onClicked:function(e,dia){
+                    /*var input = dia.element.querySelector("input[type=file]");
+                    if(input.files.length === 1){
+                        var formData = new FormData();
+                        formData.append("Upload",input.files[0]);
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST","/file-upload");
+                        xhr.upload.onprogress = function(e){
+                            //console.log(e);
+                            console.log(Math.floor((e.loaded/e.total)*100)+"%");
+                        }
+                        xhr.send(formData);
+                    }
+                    console.log(e);*/
+                    var toDelete = dia.element.querySelector(".dialog-content>span").innerHTML;
+                    var formData = new FormData();
+                    formData.append("Delete",toDelete);
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST","/file-upload");
+                    xhr.onreadystatechange = function(e){
+                        //console.log(e);
+                    }
+                    xhr.send(formData);
+                    dia.hide();
+                }
+            }
+        ],"Do you want to delete<span></span>?");
+        var selectFileUpload = new DialogWindow("Upload file",[
+            {
+                name:"Upload",
+                level:"ok",
+                onClicked:function(e,dia){
+                    var input = dia.element.querySelector("input[type=file]");
+                    if(input.files.length === 1){
+                        var formData = new FormData();
+                        formData.append("Upload",input.files[0]);
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST","/file-upload");
+                        xhr.upload.onprogress = function(e){
+                            //console.log(e);
+                            console.log(Math.floor((e.loaded/e.total)*100)+"%");
+                        }
+                        xhr.send(formData);
+                    }
+                    console.log(e);
+                    dia.hide();
+                }
+            }
+        ],"<input aria-label='Upload file' type=file>");
+        //selectFileUpload.show();
+        document.querySelectorAll(".f-wrapper").forEach(function(el){
+            el.addEventListener("click",function(e){
+                console.log(e);
+                if(!e.ctrlKey){
+                    document.querySelectorAll(".f-selected").forEach(function(el){
+                        el.classList.remove("f-selected");
+                    });
+                }
+                e.target.classList.toggle("f-selected");
+            })
+        })
+        var upButton = document.querySelector("#up-button");
+        upButton.addEventListener("click",function(e){
+            /*if(upButton.previousElementSibling.files.length === 1){
+                var formData = new FormData();
+                formData.append("Upload",upButton.previousElementSibling.files[0]);
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST","/file-upload");
+                xhr.upload.onprogress = function(e){
+                    //console.log(e);
+                    console.log(Math.floor((e.loaded/e.total)*100)+"%");
+                }
+                xhr.send(formData);
+            }
+            console.log(upButton.previousElementSibling.files);*/
+            selectFileUpload.show();
+        });
+        var delButton = document.querySelector("#del-button");
+        delButton.addEventListener("click",function(e){
+            var toDelete = document.querySelector(".f-selected");
+            if(!!toDelete){
+                toDelete = toDelete.querySelector(".f-name").innerText;
+            }else{
+                return false;
+            }
+            var div = document.createElement("div");
+            div.innerText = toDelete;
+            deleteFile.setContent("Do you want to delete \"<span>" + div.innerHTML + "</span>\"?");
+            deleteFile.show();
+            /*if(confirm("Do you want to delete the file "+toDelete+"?")){
+                if(upButton.previousElementSibling.files.length === 1){
+                    var formData = new FormData();
+                    formData.append("Delete",toDelete);
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST","/file-upload");
+                    xhr.onreadystatechange = function(e){
+                        //console.log(e);
+                    }
+                    xhr.send(formData);
+                }
+            }*/
+        });
+    </script>
+</body>
+</html>

@@ -4,9 +4,12 @@ var express = require("express");
 var app = express();
 var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
+var fileUpload = require("express-fileupload");
 var DBConnector = require("./db-connector");
 var handleAdmin = require("./handler/admin");
 var handleEditor = require("./handler/editor");
+var handleUpload = require("./handler/upload");
+var handleFileUpload = require("./handler/file-upload");
 
 var PORT = process.env.PORT || 3000;
 
@@ -16,6 +19,7 @@ dbConnector.writeJSON("test","data");
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(fileUpload());
 
 app.get("/",function(req,res) {
     res.send("<h1>Hello</h1>");
@@ -44,6 +48,25 @@ app.post("/edit",function(req,res) {
     /*ejs.renderFile("templates/editor.ejs",function(err,str) {
         res.send(str);
     });*/
+})
+
+app.get("/upload",function(req,res) {
+    handleUpload(req,res,this,dbConnector);
+    /*ejs.renderFile("templates/editor.ejs",function(err,str) {
+        res.send(str);
+    });*/
+})
+app.post("/upload",function(req,res) {
+    handleFileUpload(req,res,this,dbConnector);
+
+    /*ejs.renderFile("templates/editor.ejs",function(err,str) {
+        res.send(str);
+    });*/
+})
+
+app.post("/file-upload",function(req,res) {
+    handleFileUpload(req,res,this,dbConnector);
+    console.log(req);
 })
 
 app.listen(PORT)

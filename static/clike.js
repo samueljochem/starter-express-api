@@ -477,7 +477,7 @@
       modeProps: {fold: ["brace", "include"]}
     });
   
-    def("java","text/x-java", {
+    def(/*"java",*/"text/x-java", {
       name: "clike",
       keywords: words("abstract assert break case catch class const continue default " +
                       "do else enum extends final finally for goto if implements import " +
