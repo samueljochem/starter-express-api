@@ -38,10 +38,11 @@
             html,
             body {
                 font-family: sans-serif;
-                width: 99.9%;
-                height: 99.9%;
+                width: 100%;
+                height: 100%;
                 margin: 0;
                 overscroll-behavior: contain;
+                overflow: hidden;
             }
 
             main {
@@ -208,6 +209,7 @@
                 <button>Publish</button>
             </div>
         </main>
+        <%- include("scripts/dialog") %>
         <script>
             class TabLayout {
                 /**
@@ -477,6 +479,39 @@
             }
         </script>
         <script>
+            function pickFile(cb){
+                var i = 0;
+                var fileSelect = {
+                    wasGetSelected:false,
+                    lastSelection:"",
+                    wasSelected:false
+                };
+                var filePicker = new DialogWindow("Pick files",[
+                    {
+                        name:"Chose",
+                        onClicked:function(e,dia){
+                            postMessage("get selected",dia.element.querySelector("iframe"));
+                            //dia.hide();
+                        }
+                    }
+                ],`
+                <iframe src="upload"></iframe>
+                `)
+                filePicker.show();
+                window.addEventListener("message",function(e){
+                    i++;
+                    console.log(cb,e);
+                    if(i === 2){
+                        cb(e.data);
+                    }
+                })
+            }
+            /*onmessage = function(e){
+                console.log(e);
+            }*/
+            pickFile(function(e){
+                console.log(e);
+            });
             //CodeMirror.defineMIME("java",{name:"text/x-java"});
             var markedOptions = {
                 renderer: {
@@ -535,7 +570,12 @@
 
             var tabLayout = new TabLayout(document.querySelector("main"));
             var markdownTab = new Tab("Options","options");
-            markdownTab.element.innerHTML = "<textarea></textarea>";
+            markdownTab.element.innerHTML = `
+<label for="post-title">Title:</label><input id="post-title">
+<label for="post-keywords">Keywords:</label><input id="post-keywords">
+<label for="post-des">Description:</label><input id="post-des">
+<label for="post-image">Image:</label><input id="post-image">
+            `;
             var previewTab = new Tab("Preview","preview");
             previewTab.element.innerHTML = "<iframe></iframe>";
             var cmEditorTab = new Tab("Markdown","markdown-editor");

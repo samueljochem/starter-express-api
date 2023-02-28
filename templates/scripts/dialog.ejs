@@ -1,0 +1,112 @@
+<style>
+    .dialog-wrapper {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(7px);
+    }
+
+    .dialog-wrapper>.dialog-box {
+        margin: auto;
+        display: inline-block;
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        border-radius: 0.5rem;
+        max-width: 300px;
+    }
+
+    .dialog-wrapper>.dialog-box>hr {
+        margin: 0;
+        color: rgba(100, 100, 100, 0.4);
+    }
+
+    .dialog-wrapper>.dialog-box>.dialog-head,
+    .dialog-wrapper>.dialog-box>.dialog-actions {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem;
+        user-select: none;
+    }
+
+    .dialog-wrapper>.dialog-box>.dialog-content {
+        min-height: 150px;
+        padding: 0.5rem;
+    }
+
+    .dialog-wrapper>.dialog-box>.dialog-actions {
+        justify-content: end;
+    }
+
+    .dialog-wrapper>.dialog-box>.dialog-actions>button {
+        border-radius: 0.5rem;
+        border: 0;
+        padding: 0.3rem;
+        color: white;
+        cursor: pointer;
+    }
+
+    .dialog-wrapper>.dialog-box>.dialog-head>.dialog-close {
+        color: red;
+        cursor: pointer;
+    }
+</style>
+<script>
+    class DialogWindow {
+        constructor(title/*,type*/,actions,content) {
+            var _glob = this;
+            this.title = title;
+            //this.type = type;
+            this.actions = actions;
+            this.content = content;
+            this.element = document.createElement("div");
+            this.element.classList.add("dialog-wrapper");
+            this.element.innerHTML = `
+        <div class="dialog-box">
+            <div class="dialog-head">
+                <div class="dialog-title"></div>
+                <div class="dialog-close">X</div>
+            </div>
+            <hr>
+            <div class="dialog-content"></div>
+            <hr>
+            <div class="dialog-actions"></div>
+        </div>
+        `;
+            this.element.querySelector(".dialog-title").innerText = title;
+            this.element.querySelector(".dialog-close").addEventListener("click",function() {
+                _glob.hide();
+            })
+            this.element.querySelector(".dialog-content").innerHTML = content;
+            var ACTIONS = {
+                "danger": "red",
+                "info": "blue",
+                "ok": "green"
+            }
+            for(var i of actions) {
+                var button = document.createElement("button");
+                button.style.backgroundColor = ACTIONS[(i.level || "info")];
+                button.innerText = i.name;
+                button.onclick = function(e) {
+                    i.onClicked(e,_glob);
+                };
+                this.element.querySelector(".dialog-actions").appendChild(button);
+            }
+        }
+        show() {
+            document.body.appendChild(this.element);
+            this.element.style.display = "block";
+        }
+        hide() {
+            this.element.style.display = "none";
+        }
+        setContent(html) {
+            this.element.querySelector(".dialog-content").innerHTML = html;
+        }
+    }
+</script>
