@@ -2,7 +2,7 @@ var crypto = require("crypto");
 var ejs = require("ejs");
 
 module.exports = function handleUpload(req,res,parentScope,dbConnector) {
-    console.log(req.headers,req.cookies)
+    //console.log(req.headers,req.cookies)
     var users = dbConnector.readJSON("users") || [];
     var sessions = dbConnector.readJSON("sessions") || [];
     /*if(req.method === "POST"){
@@ -30,7 +30,7 @@ module.exports = function handleUpload(req,res,parentScope,dbConnector) {
     if(sessions.includes(req.cookies.auth)) {
         var fileUploads = dbConnector.readJSON("file-uploads");
         if(req.method === "GET") {
-            console.log(req);
+            //console.log(req);
             if(req.query.path) {
                 /*for(var i = 0;i < publicBlogPosts.length;i++){
                     if(publicBlogPosts[i].title === req.query.edit){

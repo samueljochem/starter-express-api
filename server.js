@@ -64,9 +64,14 @@ app.post("/upload",function(req,res) {
     });*/
 })
 
+app.get("/file-upload",function(req,res) {
+    handleFileUpload(req,res,this,dbConnector);
+    //console.log(req);
+})
+
 app.post("/file-upload",function(req,res) {
     handleFileUpload(req,res,this,dbConnector);
-    console.log(req);
+    //console.log(req);
 })
 
 app.listen(PORT,function(){

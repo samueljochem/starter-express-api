@@ -33,6 +33,15 @@ module.exports = class DBConnector {
                 this.connection = this.db.connect(this.credentials);
         }
     }
+    createFolder(location,name) {
+        switch(this.type) {
+            case "filesystem":
+                this.connection.mkdirSync("filesystem/" + location + "/" + (name||""),{
+                    recursive:true
+                });
+                break;
+        }
+    }
     writeFile(location,data) {
         switch(this.type) {
             case "filesystem":

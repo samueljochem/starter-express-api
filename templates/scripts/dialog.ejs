@@ -106,7 +106,12 @@
             this.element.style.display = "none";
         }
         setContent(html) {
+            this.content = html;
             this.element.querySelector(".dialog-content").innerHTML = html;
+        }
+        setTitle(title){
+            this.title = title;
+            this.element.querySelector(".dialog-title").innerText = title;
         }
     }
 </script>

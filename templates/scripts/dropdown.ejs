@@ -1,0 +1,71 @@
+<style>
+    .dropdown-back{
+        position: fixed;
+        inset: 0;
+        display: none;
+    }
+    .dropdown-back>.dropdown-list{
+        position: absolute;
+        background-color: rgba(0,0,0,0.5);
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+</style>
+<script>
+    class Dropdown{
+        constructor(element,options){
+            var _glob = this;
+            this.isOpen = false;
+            element.addEventListener("click",function(){
+                if(_glob.isOpen){
+                    _glob.hide();
+                }else{
+                    _glob.show();
+                }
+            })
+            this.options = options;
+            this.parent = element;
+            this.element = document.createElement("div");
+            this.element.classList.add("dropdown-back");
+            this.element.addEventListener("pointerdown",function(e){
+                if(e.target === _glob.element){
+                    _glob.hide();
+                }
+            })
+            var ul = document.createElement("ul");
+            ul.classList.add("dropdown-list");
+            for(var i = 0;i < options.length;i++){
+                console.log(options[i],options[i].onClicked.toString());
+                if(options[i] === "hr"){
+                    ul.innerHTML += "<hr>";
+                }else{
+                    var option = document.createElement("li");
+                    option.addEventListener("click", function(e){
+                        var indx = Array.prototype.indexOf.call(e.target.parentElement.children, e.target);
+                        _glob.options[indx].onClicked(e,_glob);
+                        console.log(i,e.target.innerHTML);
+                    });
+                    option.innerHTML = options[i].content;
+                    ul.appendChild(option);
+                    console.log(option);
+                }
+            }
+            this.element.appendChild(ul);
+            document.body.appendChild(this.element);
+        }
+        show(){
+            var parent = this.parent;
+            var x = parent.offsetLeft;
+            var y = parent.offsetTop + parent.offsetHeight;
+            this.element.children[0].style.left = x + "px";
+            this.element.children[0].style.top = y + "px";
+            this.element.style.display = "block";
+            this.isOpen = true;
+        }
+        hide(){
+            this.element.style.display = "none";
+            this.isOpen = false;
+        }
+    }
+</script>

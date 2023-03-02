@@ -15,6 +15,16 @@
             height: 100%;
             margin: 0;
         }
+        #path{
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+        }
+        #path>.path-input-wrapper{
+            display: inline-flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+        }
         #files{
             display: flex;
             flex-wrap: wrap;
@@ -71,7 +81,23 @@
     </style>
 </head>
 <body>
-    <div id="toolbar"></div>
+    <div id="toolbar">
+        <div id="options">
+            <button class="new-options"><img alt="Add icon" src="static/icons/add-circle.svg">New</button>
+            <button id="up-button"><img alt="Upload icon" src="static/icons/upload.svg"></button>
+            <button id="del-button"><img alt="Delete icon" src="static/icons/delete.svg"></button>
+        </div>
+        <div id="path">
+            <button><img alt="Go up icon" src="static/icons/arrow-upward.svg"></button>
+            <div class="path-input-wrapper">
+                <input id="path-input" type="url" aria-label="Path" value="/" autocapitalize="off" autocomplete="off">
+                <div class="path-visual">
+                    /
+                </div>
+                <button onclick="viewFolder()"><img alt="Refesh icon" src="static/icons/refresh.svg"></button>
+            </div>
+        </div>
+    </div>
     <div id="explorer">
         <div></div>
         <div id="files">
@@ -85,7 +111,7 @@
                                 <path d="M28,5v9c0,1.105 0.895,2 2,2h9z" fill="#777777"></path>
                             </g>
                         </svg>
-                        <span><%= i.split('.').pop() %></span>
+                        <span<%- (i.includes(".")?"":" style='display:none;'") %>><%= i.split('.').pop() %></span>
                     </div>
                     <% }else{ %>
                     <div class="folder-icon">
@@ -101,19 +127,115 @@
         </div>
     </div>
     
-    <div>
+    <!--div>
         <input hidden type="file">
-        <button id="up-button">Upload</button>
-    </div>
-    <div>
-        <button id="del-button">Delete</button>
-    </div>
+        <button id="old-up-button">Upload</button>
+    </!--div>
+    <div-->
+        <!--button id="old-del-button">Delete</!--button>
+    </div-->
     
     <%# JSON.stringify(fileUploads) %>
+    <%- include("scripts/dropdown") %>
     <%- include("scripts/dialog") %>
     <script>
+        function renderVisualPath(){
+            var visualPath = document.querySelector(".path-visual");
+            var path = getCurrentPath()||"/";
+            if(!path.startsWith("/")){
+                path = "/" + path;
+            }
+            path = path.split("/").splice(1);
+            console.log(path);
+            visualPath.innerHTML = '<button><img alt="Folder icon" src="static/icons/folder.svg">Root</button>';
+            var cleanPath = "/";
+            if(!currentFS.root){
+                for(var i of path){
+                    cleanPath += i + "/";
+                    visualPath.innerHTML += '<img alt="Chevron right icon" src="static/icons/chevron-right.svg">';
+                    var folderButton = document.createElement("button");
+                    folderButton.innerText = i;
+                    visualPath.appendChild(folderButton);
+                }
+                while(cleanPath.endsWith("/")){
+                    cleanPath = cleanPath.substring(0,cleanPath.length-1);
+                }
+                console.log(cleanPath.substring(0,cleanPath.length-1),cleanPath.substr(0,-1),cleanPath);
+            }
+            document.querySelector("#path-input").value = cleanPath;
+        }
+        //setInterval(renderVisualPath,2000);
+        
         var path = "";
-        console.log(window)
+        var currentFS = {};
+        function viewFolder(){
+            var url = new URL(location.href.replace(/upload[/]?$/,"file-upload"));
+            url.search = new URLSearchParams({
+                CurrentPath:getCurrentPath()
+            }).toString();
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load",function () {
+                console.log(this);
+                currentFS = JSON.parse(this.responseText);
+                var filesElement = document.querySelector("#files")
+                filesElement.innerHTML = "";
+                for(var i in currentFS.childs){
+                    var fWrapper = document.createElement("div");
+                    fWrapper.classList.add("f-wrapper");
+                    fWrapper.innerHTML = ((currentFS.childs[i].type === "file")?`
+                    <div class="file-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="48" height="48" viewBox="0,0,256,256">
+                            <g transform="scale(5.33333,5.33333)">
+                                <path d="M39,16v25c0,1.105 -0.895,2 -2,2h-26c-1.105,0 -2,-0.895 -2,-2v-34c0,-1.105 0.895,-2 2,-2h17z" fill="#cccccc"></path>
+                                <path d="M28,5v9c0,1.105 0.895,2 2,2h9z" fill="#777777"></path>
+                            </g>
+                        </svg>
+                        <span></span>
+                    </div>
+                    `:`
+                    <div class="folder-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="48" height="48" viewBox="0 0 48 48">
+                            <path fill="#FFA000" d="M40,12H22l-4-4H8c-2.2,0-4,1.8-4,4v8h40v-4C44,13.8,42.2,12,40,12z"></path>
+                            <path fill="#FFCA28" d="M40,12H8c-2.2,0-4,1.8-4,4v20c0,2.2,1.8,4,4,4h32c2.2,0,4-1.8,4-4V16C44,13.8,42.2,12,40,12z"></path>
+                        </svg>
+                    </div>
+                    `)+'<span class="f-name"></span>';
+                    if(currentFS.childs[i].type === "file"){
+                        if(i.includes(".")){
+                            fWrapper.querySelector("span").innerText = i.split(".").pop();
+                        }else{
+                            fWrapper.querySelector("span").style.display = "none";
+                        }
+                    }
+                    fWrapper.querySelector(".f-name").innerText = i;
+                    filesElement.appendChild(fWrapper);
+                }
+                init();
+                renderVisualPath();
+            });
+            xhr.open("GET", url);
+            xhr.send();
+        }
+        function getCurrentPath(){
+            return document.querySelector("#path-input").value.replaceAll(/\/{2,}/g,"/").replace(/\/$/,"");
+        }
+        /*setInterval(async function(){
+            var url = new URL(location.href.replace(/upload[/]?$/,"file-upload"));
+            url.search = new URLSearchParams({
+                CurrentPath:getCurrentPath()
+            }).toString();
+            function reqListener() {
+                console.log(this);
+                currentFS = JSON.parse(this.responseText);
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", reqListener);
+            //console.log("XHR",xhr);
+            xhr.open("GET", url);
+            xhr.send();
+        },7000);*/
+        console.log(window);
         window.parent.onmessage = function(e){
             if(e.data === "get selected"){
                 var sel = document.querySelector(".f-selected .f-name");
@@ -124,6 +246,56 @@
                 console.log(e);
             }
         }
+        var createDialog = new DialogWindow("Create folder",[
+            {
+                name:"Create",
+                level:"ok",
+                onClicked:function(e,dia){
+                    var input = dia.element.querySelector("input");
+                    if(input){
+                        var formData = new FormData();
+                        if(input.id === "new-folder-name"){
+                            formData.append("CreateFolder",input.value);
+                        }else{
+                            formData.append("CreateFile",input.value);
+                        }
+                        console.log("PATH",getCurrentPath());
+                        formData.append("CurrentPath",getCurrentPath()+"/");
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST","/file-upload");
+                        xhr.addEventListener("load",viewFolder);
+                        xhr.send(formData);
+                    }
+                    dia.hide();
+                }
+            }
+        ],"");
+        var newOptions = new Dropdown(document.querySelector(".new-options"),[
+            {
+                content:"Folder",
+                onClicked:function(e,drop){
+                    drop.hide();
+                    createDialog.setTitle("Create new folder");
+                    createDialog.setContent(`
+                    <label for="new-folder-name">Folder name</label><input id="new-folder-name" value="New Folder">
+                    `);
+                    createDialog.show();
+                    createDialog.element.querySelector("input").select();
+                }
+            },
+            {
+                content:"Text file",
+                onClicked:function(e,drop){
+                    drop.hide();
+                    createDialog.setTitle("Create new file");
+                    createDialog.setContent(`
+                    <label for="new-file-name">File name</label><input id="new-file-name" value="New file.txt">
+                    `);
+                    createDialog.show();
+                    createDialog.element.querySelector("input").select();
+                }
+            }
+        ])
         var deleteFile = new DialogWindow("Delete file",[
             {
                 name:"Delete",
@@ -145,11 +317,10 @@
                     var toDelete = dia.element.querySelector(".dialog-content>span").innerHTML;
                     var formData = new FormData();
                     formData.append("Delete",toDelete);
+                    formData.append("CurrentPath",getCurrentPath()+"/");
                     var xhr = new XMLHttpRequest();
                     xhr.open("POST","/file-upload");
-                    xhr.onreadystatechange = function(e){
-                        //console.log(e);
-                    }
+                        xhr.addEventListener("load",viewFolder);
                     xhr.send(formData);
                     dia.hide();
                 }
@@ -164,11 +335,16 @@
                     if(input.files.length === 1){
                         var formData = new FormData();
                         formData.append("Upload",input.files[0]);
+                        formData.append("CurrentPath",getCurrentPath()+"/");
                         var xhr = new XMLHttpRequest();
                         xhr.open("POST","/file-upload");
                         xhr.upload.onprogress = function(e){
                             //console.log(e);
-                            console.log(Math.floor((e.loaded/e.total)*100)+"%");
+                            var perc = Math.floor((e.loaded/e.total)*100)+"%";
+                            console.log(perc);
+                            if(perc === "100%"){
+                                viewFolder();
+                            }
                         }
                         xhr.send(formData);
                     }
@@ -178,17 +354,6 @@
             }
         ],"<input aria-label='Upload file' type=file>");
         //selectFileUpload.show();
-        document.querySelectorAll(".f-wrapper").forEach(function(el){
-            el.addEventListener("click",function(e){
-                console.log(e);
-                if(!e.ctrlKey){
-                    document.querySelectorAll(".f-selected").forEach(function(el){
-                        el.classList.remove("f-selected");
-                    });
-                }
-                e.target.classList.toggle("f-selected");
-            })
-        })
         var upButton = document.querySelector("#up-button");
         upButton.addEventListener("click",function(e){
             /*if(upButton.previousElementSibling.files.length === 1){
@@ -230,6 +395,38 @@
                 }
             }*/
         });
+
+        function init(){
+            document.querySelectorAll(".f-wrapper").forEach(function(el){
+                el.addEventListener("click",function(e){
+                    console.log(e);
+                    if(!e.ctrlKey){
+                        document.querySelectorAll(".f-selected").forEach(function(el){
+                            el.classList.remove("f-selected");
+                        });
+                    }
+                    e.target.classList.toggle("f-selected");
+                });
+                el.addEventListener("dblclick",function(e){
+                    if(e.target.children[0].classList.contains("folder-icon")){
+                        document.querySelector("#path-input").value += "/" + e.target.children[1].innerText;
+                        viewFolder();
+                    }
+                })
+            })
+        }
+        init();
+
+        /*var pathInputDebounce;
+        document.querySelector("#path-input").addEventListener("input",function(){
+            setTimeout(function(){
+                viewFolder();
+            },500);
+        })*/
+        document.querySelector("#path-input").addEventListener("blur",function(e){
+            console.log("BLUR event",e);
+            viewFolder();
+        })
     </script>
 </body>
 </html>
