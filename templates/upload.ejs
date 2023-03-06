@@ -9,11 +9,26 @@
         *{
             box-sizing: border-box;
             font-family: sans-serif;
+            font-size: 16px;
+            padding-inline: 0;
+            padding-block: 0;
         }
+        /*button>img{
+            height: 100%;
+            padding: 0;
+        }*/
         html,body{
             width: 100%;
             height: 100%;
             margin: 0;
+        }
+        button>*,
+        .path-input-wrapper *{
+            vertical-align: middle;
+        }
+        img.m-icon{
+            width: 20px;
+            height: 20px;
         }
         #path{
             display: flex;
@@ -78,23 +93,68 @@
             user-select: none;
             -webkit-user-drag: none;
         }
+        #files>.f-wrapper>.file-icon>img{
+            object-fit: contain;
+            height: 48px;
+            padding: 1px !important;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .path-input-wrapper{
+            width: 100%;
+            border: 1px solid black;
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            align-content: stretch;
+        }
+        .path-input-wrapper>*{
+            display: none;
+        }
+        .path-input-wrapper>form>input{
+            width: 100%;
+        }
+        .path-input-wrapper>form:focus-within,
+        .path-input-wrapper.input-focus>form,
+        .path-input-wrapper.no-input-focus>.path-visual{
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+        .path-input-wrapper>.path-refresh{
+            display: block;
+        }
+        .notification-content>label{
+            display: block;
+        }
+        .notification-content>label>progress{
+            display: block;
+            width: 100%;
+        }
+        .notification-content>label>.upload-percent{
+            display: block;
+            text-align: end;
+        }
     </style>
 </head>
 <body>
     <div id="toolbar">
         <div id="options">
-            <button class="new-options"><img alt="Add icon" src="static/icons/add-circle.svg">New</button>
-            <button id="up-button"><img alt="Upload icon" src="static/icons/upload.svg"></button>
-            <button id="del-button"><img alt="Delete icon" src="static/icons/delete.svg"></button>
+            <button class="new-options"><img class="m-icon" alt="Add icon" src="static/icons/add-circle.svg"><span>New</span></button>
+            <button id="up-button"><img class="m-icon" alt="Upload icon" src="static/icons/upload.svg"></button>
+            <button id="del-button"><img class="m-icon" alt="Delete icon" src="static/icons/delete.svg"></button>
         </div>
         <div id="path">
-            <button><img alt="Go up icon" src="static/icons/arrow-upward.svg"></button>
-            <div class="path-input-wrapper">
-                <input id="path-input" type="url" aria-label="Path" value="/" autocapitalize="off" autocomplete="off">
+            <button><img class="m-icon" alt="Go up icon" src="static/icons/arrow-upward.svg"></button>
+            <div class="path-input-wrapper no-input-focus">
+                <form class="path-input-form" action="#" method="dialog">
+                    <input pattern=".*" id="path-input" type="text" aria-label="Path" value="/" autocapitalize="off" autocomplete="off">
+                </form>
                 <div class="path-visual">
-                    /
+                    <button><img class="m-icon" alt="Folder icon" src="static/icons/folder.svg"><span>Root</span></button>
                 </div>
-                <button onclick="viewFolder()"><img alt="Refesh icon" src="static/icons/refresh.svg"></button>
+                <button class="path-refresh" onclick="viewFolder()"><img class="m-icon" alt="Refesh icon" src="static/icons/refresh.svg"></button>
             </div>
         </div>
     </div>
@@ -138,6 +198,7 @@
     <%# JSON.stringify(fileUploads) %>
     <%- include("scripts/dropdown") %>
     <%- include("scripts/dialog") %>
+    <%- include("scripts/notification") %>
     <script>
         function renderVisualPath(){
             var visualPath = document.querySelector(".path-visual");
@@ -147,14 +208,15 @@
             }
             path = path.split("/").splice(1);
             console.log(path);
-            visualPath.innerHTML = '<button><img alt="Folder icon" src="static/icons/folder.svg">Root</button>';
+            visualPath.innerHTML = '<button><img class="m-icon" alt="Folder icon" src="static/icons/folder.svg"><span>Root</span></button>';
             var cleanPath = "/";
             if(!currentFS.root){
                 for(var i of path){
                     cleanPath += i + "/";
-                    visualPath.innerHTML += '<img alt="Chevron right icon" src="static/icons/chevron-right.svg">';
+                    visualPath.innerHTML += '<img class="m-icon" alt="Chevron right icon" src="static/icons/chevron-right.svg">';
                     var folderButton = document.createElement("button");
-                    folderButton.innerText = i;
+                    folderButton.innerHTML = "<span></span>";
+                    folderButton.children[0].innerText = i;
                     visualPath.appendChild(folderButton);
                 }
                 while(cleanPath.endsWith("/")){
@@ -169,7 +231,8 @@
         var path = "";
         var currentFS = {};
         function viewFolder(){
-            var url = new URL(location.href.replace(/upload[/]?$/,"file-upload"));
+            var url = new URL(location.href);
+            url.pathname = url.pathname.replace(/upload[/]?$/,"file-upload");
             url.search = new URLSearchParams({
                 CurrentPath:getCurrentPath()
             }).toString();
@@ -235,15 +298,19 @@
             xhr.open("GET", url);
             xhr.send();
         },7000);*/
-        console.log(window);
-        window.parent.onmessage = function(e){
-            if(e.data === "get selected"){
-                var sel = document.querySelector(".f-selected .f-name");
-                if(sel){
-                    console.log(sel,top,parent);
-                    e.source.postMessage(path+sel.innerHTML);
+        var standaloneFileManager = true;
+        console.log(!!window.parent.standaloneFileManager);
+        if(!window.parent.standaloneFileManager){
+            document.querySelector("#toolbar>#options").style.display = "none";
+            window.parent.onmessage = function(e){
+                if(e.data === "get selected"){
+                    var sel = document.querySelector(".f-selected .f-name");
+                    if(sel){
+                        console.log(sel,top,parent,getCurrentPath());
+                        e.source.postMessage((getCurrentPath()||"")+"/"+sel.innerHTML);
+                    }
+                    console.log(e);
                 }
-                console.log(e);
             }
         }
         var createDialog = new DialogWindow("Create folder",[
@@ -338,10 +405,22 @@
                         formData.append("CurrentPath",getCurrentPath()+"/");
                         var xhr = new XMLHttpRequest();
                         xhr.open("POST","/file-upload");
+                        var uploadProgress = new HTMLNotification("File upload",`
+                        <label>
+                            <span class="upload-file-name"></span>
+                            <progress value="0" max="100"></progress>
+                            <span class="upload-percent">0%</span>
+                        </label>
+                        `);
+                        uploadProgress.element.querySelector(".upload-file-name").innerText = input.files[0].name;
+                        uploadProgress.show();
                         xhr.upload.onprogress = function(e){
                             //console.log(e);
+                            uploadProgress.element.querySelector("progress").max = e.total;
+                            uploadProgress.element.querySelector("progress").value = e.loaded;
                             var perc = Math.floor((e.loaded/e.total)*100)+"%";
                             console.log(perc);
+                            uploadProgress.element.querySelector(".upload-percent").innerText = perc;
                             if(perc === "100%"){
                                 viewFolder();
                             }
@@ -352,7 +431,9 @@
                     dia.hide();
                 }
             }
-        ],"<input aria-label='Upload file' type=file>");
+        ],`
+        <input aria-label="Upload file" type=file>
+        `);
         //selectFileUpload.show();
         var upButton = document.querySelector("#up-button");
         upButton.addEventListener("click",function(e){
@@ -397,7 +478,8 @@
         });
 
         function init(){
-            document.querySelectorAll(".f-wrapper").forEach(function(el){
+            var allFiles = document.querySelectorAll(".f-wrapper")
+            allFiles.forEach(function(el){
                 el.addEventListener("click",function(e){
                     console.log(e);
                     if(!e.ctrlKey){
@@ -413,20 +495,74 @@
                         viewFolder();
                     }
                 })
-            })
+            });
+            var currentFileIndex = -1;
+            function loadNext(){
+                currentFileIndex += 1;
+                var currentFile = allFiles[currentFileIndex];
+                if(currentFile){
+                    if(currentFile.querySelector(".file-icon")){
+                        if(["APNG","AVIF","BMP","CUR","GIF","ICO","JPEG","JPG","JFIF","PJPEG","PJP","PNG","SVG","WEBP"].includes(currentFile.querySelector(".file-icon span").innerText)){
+                            var image = new Image();
+                            image.src = "./uploads" + getCurrentPath() + "/" + currentFile.querySelector(".f-name").innerText;
+                            image.onload = function(e){
+                                var currentIcon = currentFile.querySelector(".file-icon");
+                                currentIcon.innerHTML = "";
+                                currentIcon.appendChild(image);
+                                console.log(e);
+                                loadNext();
+                            }
+                            console.log(image);
+                        }else{
+                            loadNext();
+                        }
+                        console.log("FILE",currentFile.querySelector(".file-icon span").innerText);
+                    }else{
+                        loadNext();
+                    }
+                }
+                console.log("LOADING IMAGE PREVIEWS",currentFile);
+            }
+            loadNext();
         }
         init();
 
-        /*var pathInputDebounce;
-        document.querySelector("#path-input").addEventListener("input",function(){
-            setTimeout(function(){
-                viewFolder();
-            },500);
-        })*/
-        document.querySelector("#path-input").addEventListener("blur",function(e){
-            console.log("BLUR event",e);
-            viewFolder();
+        var pathInputDebounce;
+        document.querySelector(".path-input-form").addEventListener("submit",function(e){
+            document.querySelector("#path-input").blur();
         })
+        document.querySelector("#path-input").addEventListener("blur",function(e){
+            viewFolder();
+            document.querySelector(".path-input-wrapper").classList.remove("input-focus");
+            document.querySelector(".path-input-wrapper").classList.add("no-input-focus");
+        })
+        document.querySelector("#path-input").addEventListener("focus",function(e){
+            document.querySelector(".path-input-wrapper").classList.remove("no-input-focus");
+            document.querySelector(".path-input-wrapper").classList.add("input-focus");
+        })
+        document.querySelector(".path-input-wrapper").addEventListener("click",function(e){
+            if(e.target.tagName === "DIV"){
+                document.querySelector(".path-input-wrapper").classList.remove("no-input-focus");
+                document.querySelector(".path-input-wrapper").classList.add("input-focus");
+                document.querySelector("#path-input").focus();
+                document.querySelector("#path-input").select();
+            }
+        })
+        document.addEventListener("keydown",function(e){
+            if(e.ctrlKey && e.key === "l"){
+                e.preventDefault();
+                document.querySelector(".path-input-wrapper").classList.remove("no-input-focus");
+                document.querySelector(".path-input-wrapper").classList.add("input-focus");
+                document.querySelector("#path-input").focus();
+                document.querySelector("#path-input").select();
+            }
+        })
+
+        /*setInterval(function(){
+            if(document.querySelectorAll(".f-selected").length === 0){
+                viewFolder();
+            }
+        },10000);*/
     </script>
 </body>
 </html>

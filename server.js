@@ -30,6 +30,8 @@ app.use("/static",express.static(__dirname+"/static"/*,{
         res.set("X-Content-Type-Options","sniff");
     }
 }*/));
+
+app.use("/uploads",express.static(__dirname+"/filesystem/uploads"));
 app.get("/admin",function(req,res) {
     handleAdmin(req,res,this,dbConnector);
 })

@@ -162,13 +162,20 @@ module.exports = function handleFileUpload(req,res,parentScope,dbConnector) {
                     res.status(400).send("No files were uploaded.");
                 } else if(req.files.Upload) {
                     var uploadFile = req.files.Upload;
-                    dbConnector.writeFile("uploads"/* + currentPath*/ + "/" + uploadFile.name,uploadFile.data);
+                    uploadFile.name = currentPath + uploadFile.name;
+                    console.log(currentPath,uploadFile.name);
+                    dbConnector.writeFile("uploads"/* + currentPath* + "/"*/ + uploadFile.name,uploadFile.data);
                     var files = dbConnector.readJSON("file-uploads") || {};
-                    files.childs[uploadFile.name] = {
+                    /*files.childs[uploadFile.name] = {
                         type: "file",
                         size: uploadFile.size,
                         modified: Date.now()
-                    }
+                    }*/
+                    setPathInfo(uploadFile.name, files, {
+                        type:"file",
+                        size: uploadFile.size,
+                        modified: Date.now()
+                    });
                     dbConnector.writeJSON("file-uploads",files);
                     res.send("Success");
                 }

@@ -231,62 +231,64 @@
                     element.style.verticalAlign = "stretch";
                     element.style.position = "relative";
                     element.addEventListener("dragover",function(e) {
-                        var maxHeight = _glob.tabLayoutWrapper.clientHeight;
-                        var maxWidth = _glob.tabLayoutWrapper.clientWidth;
-                        var cX = e.layerX;
-                        var cY = e.layerY;
-                        var pos = cX / maxWidth > cY / maxHeight;
-                        pos = (cX > maxWidth / 4 && cX < maxWidth / 4 * 3 && cY > maxHeight / 4 && cY < maxHeight / 4 * 3) ? "center" :
-                            (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth) > 0 ? pos ? "top" : "left" : pos ? "right" : "bottom";
-                        //console.log(pos)
-                        //console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
-                        if(pos === "top") {
-                            if(_glob.lastSet !== "top") {
-                                _glob.lastSet = "top";
-                                /*_glob.tabLayoutWrapper.children[2].classList.remove("right");
-                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
-                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                _glob.tabLayoutWrapper.children[2].classList.add("top");
+                        if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
+                            var maxHeight = _glob.tabLayoutWrapper.clientHeight;
+                            var maxWidth = _glob.tabLayoutWrapper.clientWidth;
+                            var cX = e.layerX;
+                            var cY = e.layerY;
+                            var pos = cX / maxWidth > cY / maxHeight;
+                            pos = (cX > maxWidth / 4 && cX < maxWidth / 4 * 3 && cY > maxHeight / 4 && cY < maxHeight / 4 * 3) ? "center" :
+                                (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth) > 0 ? pos ? "top" : "left" : pos ? "right" : "bottom";
+                            //console.log(pos)
+                            //console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
+                            if(pos === "top") {
+                                if(_glob.lastSet !== "top") {
+                                    _glob.lastSet = "top";
+                                    /*_glob.tabLayoutWrapper.children[2].classList.remove("right");
+                                    _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("top");
+                                }
+                            } else if(pos === "left") {
+                                if(_glob.lastSet !== "left") {
+                                    _glob.lastSet = "left";
+                                    /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                    _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("left");
+                                }
+                            } else if(pos === "right") {
+                                if(_glob.lastSet !== "right") {
+                                    _glob.lastSet = "right";
+                                    /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                    _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("right");
+                                }
+                            } else if(pos === "bottom") {
+                                if(_glob.lastSet !== "bottom") {
+                                    _glob.lastSet = "bottom";
+                                    /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                    _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("bottom");
+                                }
+                            } else {
+                                if(_glob.lastSet !== "center") {
+                                    _glob.lastSet = "center";
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("center");
+                                }
                             }
-                        } else if(pos === "left") {
-                            if(_glob.lastSet !== "left") {
-                                _glob.lastSet = "left";
-                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
-                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
-                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                _glob.tabLayoutWrapper.children[2].classList.add("left");
-                            }
-                        } else if(pos === "right") {
-                            if(_glob.lastSet !== "right") {
-                                _glob.lastSet = "right";
-                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
-                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
-                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                _glob.tabLayoutWrapper.children[2].classList.add("right");
-                            }
-                        } else if(pos === "bottom") {
-                            if(_glob.lastSet !== "bottom") {
-                                _glob.lastSet = "bottom";
-                                /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
-                                _glob.tabLayoutWrapper.children[2].classList.remove("center");*/
-                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                _glob.tabLayoutWrapper.children[2].classList.add("bottom");
-                            }
-                        } else {
-                            if(_glob.lastSet !== "center") {
-                                _glob.lastSet = "center";
-                                _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
-                                _glob.tabLayoutWrapper.children[2].classList.add("center");
-                            }
+                            e.preventDefault();
+                            //return false;
                         }
                         //console.log(e,_glob);
                     })
                     element.addEventListener("dragover",function(e) {
+                        console.log(e.dataTransfer.getData("text/plain"));
                         //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
-                        //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
-                        e.preventDefault();
-                        //return false;
-                        //}
+                            
                         /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
                             //e.preventDefault();
                             //e.bubbles = false;
@@ -486,7 +488,7 @@
                     lastSelection:"",
                     wasSelected:false
                 };
-                var filePicker = new DialogWindow("Pick files",[
+                var filePicker = new DialogWindow("Pick file",[
                     {
                         name:"Chose",
                         onClicked:function(e,dia){
@@ -495,13 +497,14 @@
                         }
                     }
                 ],`
-                <iframe src="upload"></iframe>
+                <iframe title="Select a file" src="upload"></iframe>
                 `)
                 filePicker.show();
                 window.addEventListener("message",function(e){
                     i++;
                     console.log(cb,e);
                     if(i === 2){
+                        filePicker.hide();
                         cb(e.data);
                     }
                 })
@@ -509,9 +512,7 @@
             /*onmessage = function(e){
                 console.log(e);
             }*/
-            pickFile(function(e){
-                console.log(e);
-            });
+            
             //CodeMirror.defineMIME("java",{name:"text/x-java"});
             var markedOptions = {
                 renderer: {
@@ -569,13 +570,20 @@
             })*/
 
             var tabLayout = new TabLayout(document.querySelector("main"));
-            var markdownTab = new Tab("Options","options");
-            markdownTab.element.innerHTML = `
-<label for="post-title">Title:</label><input id="post-title">
-<label for="post-keywords">Keywords:</label><input id="post-keywords">
-<label for="post-des">Description:</label><input id="post-des">
-<label for="post-image">Image:</label><input id="post-image">
+            var optionsTab = new Tab("Options","options");
+            optionsTab.element.innerHTML = `
+<label for="post-title">Title:</label><input id="post-title"><br>
+<label for="post-keywords">Keywords:</label><input id="post-keywords"><br>
+<label for="post-des">Description:</label><input id="post-des"><br>
+<label for="post-image">Image:</label><input type="button" value="Pick an image" id="post-image" onclick="imageSelect();"><br>
+<img alt="Post image" width="400">
             `;
+            function imageSelect(){
+                pickFile(function(e){
+                    var src = "./uploads" + e;
+                    optionsTab.element.querySelector("img").src = src;
+                });
+            }
             var previewTab = new Tab("Preview","preview");
             previewTab.element.innerHTML = "<iframe></iframe>";
             var cmEditorTab = new Tab("Markdown","markdown-editor");
@@ -608,7 +616,7 @@
    }
 \`\`\`</textarea>`;
 
-            tabLayout.addTab(markdownTab,1,false);
+            tabLayout.addTab(optionsTab,1,false);
             tabLayout.addTab(previewTab,1,false);
             tabLayout.addTab(cmEditorTab,1,true);
 
