@@ -48,7 +48,7 @@
             main {
                 width: 100%;
                 height: 100%;
-                background-color: antiquewhite;
+                /*background-color: antiquewhite;*/
             }
 
             del:after,
@@ -79,7 +79,7 @@
 
             .tab-content,
             .tab-name {
-                outline: 1px inset gray;
+                /*outline: 1px inset gray;*/
             }
 
             .split-view {
@@ -178,6 +178,7 @@
                 height: calc(100% - var(--tab-height));
             }
         </style>
+        <link rel="stylesheet" href="./static/styles.css">
     </head>
     <body>
         <main>
@@ -370,12 +371,21 @@
                                     this.tabs[lastActiveIds[this.tabs[i].position - 1]].active = false;
                                 }
                                 lastActiveIds[this.tabs[i].position - 1] = i;
+                                console.log("ACTIVE",i,lastActiveIds);
                             }
                         }
                         if(i === id && oldPosition !== position) {
                             this.tabLayoutWrapper.children[position - 1].children[0].appendChild(this.tabLayoutWrapper.querySelector("[data-tab-id=" + id + "]"));
                         }
-                        console.log(i,this.tabs[i]);
+                        this.tabLayoutWrapper.querySelector("[data-tab-id=" + i + "]").classList.remove("active-tab")
+                        //console.log(i,this.tabs[i]);
+                    }
+                    console.log(lastActiveIds);
+                    for(var i = 0;i < lastActiveIds.length;i++){
+                        lastActiveIds[i] ||= this.tabLayoutWrapper.children[i].querySelector(".tab-content>div")?.id || false;
+                        if(lastActiveIds[i]){
+                            this.tabLayoutWrapper.querySelector("[data-tab-id=" + lastActiveIds[i] + "]").classList.add("active-tab");
+                        }
                     }
                 }
                 /**
@@ -575,7 +585,7 @@
 <label for="post-title">Title:</label><input id="post-title"><br>
 <label for="post-keywords">Keywords:</label><input id="post-keywords"><br>
 <label for="post-des">Description:</label><input id="post-des"><br>
-<label for="post-image">Image:</label><input type="button" value="Pick an image" id="post-image" onclick="imageSelect();"><br>
+<label for="post-image">Image:</label><input class="button-primary" type="button" value="Pick an image" id="post-image" onclick="imageSelect();"><br>
 <img alt="Post image" width="400">
             `;
             function imageSelect(){
