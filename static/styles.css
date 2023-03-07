@@ -366,6 +366,7 @@ TABS
 
 .tab-name {
     color: var(--cms-text-subtle);
+    background-color: var(--cms-surface);
     cursor: pointer;
     line-height: 1.8;
     margin: 0px;

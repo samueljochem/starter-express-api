@@ -290,6 +290,39 @@
             xhr.open("GET", url);
             xhr.send();
         }
+
+        function uploadFiles(files){
+            console.log("FILES PARAM",files);
+            for(var i = 0;i < files.length;i++){
+                console.log("UPLOADING",files[i]);
+                var formData = new FormData();
+                formData.append("Upload",files[i]);
+                formData.append("CurrentPath",getCurrentPath()+"/");
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST","/file-upload");
+                let uploadProgress = new HTMLNotification("File upload",`
+                <label>
+                    <span class="upload-file-name"></span>
+                    <progress class="progressbar" max="100"></progress>
+                    <span class="upload-percent">0%</span>
+                </label>
+                `);
+                uploadProgress.element.querySelector(".upload-file-name").innerText = files[i].name;
+                uploadProgress.show();
+                xhr.upload.onprogress = function(e){
+                    //console.log(e);
+                    uploadProgress.element.querySelector("progress").max = e.total;
+                    uploadProgress.element.querySelector("progress").value = e.loaded;
+                    var perc = Math.floor((e.loaded/e.total)*100)+"%";
+                    console.log(perc);
+                    uploadProgress.element.querySelector(".upload-percent").innerText = perc;
+                    if(perc === "100%"){
+                        viewFolder();
+                    }
+                }
+                xhr.send(formData);
+            }
+        }
         function getCurrentPath(){
             return document.querySelector("#path-input").value.replaceAll(/\/{2,}/g,"/").replace(/\/$/,"");
         }
@@ -311,7 +344,18 @@
         },7000);*/
         var standaloneFileManager = true;
         console.log(!!window.parent.standaloneFileManager);
-        if(!window.parent.standaloneFileManager){
+        if(window.parent.standaloneFileManager){
+            ["dragenter","dragover","dragleave","drop"].forEach(function(event){
+                window.addEventListener(event,function(e){
+                    e.preventDefault();
+                    e.stopPropagation();
+                })
+            })
+            window.addEventListener("drop",function(e){
+                console.log(e,e.dataTransfer);
+                uploadFiles(e.dataTransfer.files);
+            })
+        }else{
             document.querySelector("body").style.backgroundColor = "var(--cms-surface-overlay, #FFFFFF)";
             document.querySelector("#toolbar>#options").style.display = "none";
             window.parent.onmessage = function(e){
@@ -411,34 +455,7 @@
                 level:"ok",
                 onClicked:function(e,dia){
                     var input = dia.element.querySelector("input[type=file]");
-                    if(input.files.length === 1){
-                        var formData = new FormData();
-                        formData.append("Upload",input.files[0]);
-                        formData.append("CurrentPath",getCurrentPath()+"/");
-                        var xhr = new XMLHttpRequest();
-                        xhr.open("POST","/file-upload");
-                        var uploadProgress = new HTMLNotification("File upload",`
-                        <label>
-                            <span class="upload-file-name"></span>
-                            <progress class="progressbar" max="100"></progress>
-                            <span class="upload-percent">0%</span>
-                        </label>
-                        `);
-                        uploadProgress.element.querySelector(".upload-file-name").innerText = input.files[0].name;
-                        uploadProgress.show();
-                        xhr.upload.onprogress = function(e){
-                            //console.log(e);
-                            uploadProgress.element.querySelector("progress").max = e.total;
-                            uploadProgress.element.querySelector("progress").value = e.loaded;
-                            var perc = Math.floor((e.loaded/e.total)*100)+"%";
-                            console.log(perc);
-                            uploadProgress.element.querySelector(".upload-percent").innerText = perc;
-                            if(perc === "100%"){
-                                viewFolder();
-                            }
-                        }
-                        xhr.send(formData);
-                    }
+                    uploadFiles(input.files);
                     console.log(e);
                     dia.hide();
                 }

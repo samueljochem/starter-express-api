@@ -85,6 +85,8 @@
             .split-view {
                 height: 100%;
                 width: 100%;
+                min-height: 50%;
+                min-width: 50%;
             }
 
             .tab-content {
@@ -177,6 +179,54 @@
             #markdown-editor>.CodeMirror {
                 height: calc(100% - var(--tab-height));
             }
+
+            .dragger{
+                position: fixed;
+                user-select: none;
+                cursor: url("./static/drag-move.cur") 16 16, move !important;
+            }
+
+            .drag-moving *{
+                cursor: url("./static/drag-move.cur") 16 16, move !important;
+            }
+
+            .CodeMirror{
+                background-color: transparent;
+            }
+
+            .cm-s-default .cm-header {color: var(--cms-background-information-bold, blue);}
+            .cm-s-default .cm-quote {color: #090;}
+            .cm-negative {color: #d44;}
+            .cm-positive {color: #292;}
+            .cm-header, .cm-strong {font-weight: bold;}
+            .cm-em {font-style: italic;}
+            .cm-link {text-decoration: underline;}
+            .cm-strikethrough {text-decoration: line-through;}
+
+            .cm-s-default .cm-keyword {color: #708;}
+            .cm-s-default .cm-atom {color: #219;}
+            .cm-s-default .cm-number {color: #164;}
+            .cm-s-default .cm-def {color: #00f;}
+            .cm-s-default .cm-variable,
+            .cm-s-default .cm-punctuation,
+            .cm-s-default .cm-property,
+            .cm-s-default .cm-operator {color: var(--cms-text);}
+            .cm-s-default .cm-variable-2 {color: #05a;}
+            .cm-s-default .cm-variable-3, .cm-s-default .cm-type {color: #085;}
+            .cm-s-default .cm-comment {color: #a50;}
+            .cm-s-default .cm-string {color: #a11;}
+            .cm-s-default .cm-string-2 {color: #f50;}
+            .cm-s-default .cm-meta {color: #555;}
+            .cm-s-default .cm-qualifier {color: #555;}
+            .cm-s-default .cm-builtin {color: #30a;}
+            .cm-s-default .cm-tag {color: var(--cms-text-accent-teal, #170);}
+            .cm-s-default .cm-bracket {color: var(--cms-text, #997);}
+            .cm-s-default .cm-attribute {color: #00c;}
+            .cm-s-default .cm-hr {color: #999;}
+            .cm-s-default .cm-link {color: #00c;}
+
+            .cm-s-default .cm-error {color: #f00;}
+            .cm-invalidchar {color: #f00;}
         </style>
         <link rel="stylesheet" href="./static/styles.css">
     </head>
@@ -226,23 +276,44 @@
                     this._dragData = {};
                     this._dragger = document.querySelector(".dragger");
 
-                    this.lastSet = false;
-                    this._lastDragId = false;
-                    var htmlContent =
-                        "<div class=\"split-view\">" +
-                        "<div class=\"tab-name-wrapper\"></div>" +
-                        "<div class=\"tab-content\"></div>" +
-                        "</div>";
-                    element.innerHTML = htmlContent + htmlContent + "<div class=\"split-view-preview\"></div><div class=\"temp-tabs\"></div>";
-                    element.style.display = "flex";
-                    element.style.verticalAlign = "stretch";
-                    element.style.position = "relative";
-                    element.addEventListener("dragover",function(e) {
-                        if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
+                    function dropHandler(){
+                        if(_glob._dragging){
+                            while (_glob._dragger.childNodes.length > 0) {
+                                _glob._dragData.element.style.width = "";
+                                _glob._dragData.element.style.height = "";
+                                _glob._dragData.element.appendChild(_glob._dragger.childNodes[0]);
+                            }
+                        }
+                        _glob.tabLayoutWrapper.children[2].classList.remove("active");
+                        if((["left","right"]).includes(_glob.lastSet)) {
+                            _glob.setMode(2);
+                            _glob.setTabPosition(_glob._dragData.element.getAttribute("data-tab-id"),(_glob.lastSet === "right") + 1,true);
+                        } else if((["top","bottom"]).includes(_glob.lastSet)) {
+                            _glob.setMode(3);
+                            _glob.setTabPosition(_glob._dragData.element.getAttribute("data-tab-id"),(_glob.lastSet === "bottom") + 1,true);
+                        } else if(_glob.lastSet === "center") {
+                            _glob.setMode(1);
+                            _glob.setTabPosition(_glob._dragData.element.getAttribute("data-tab-id"),1,true)
+                        }
+                        
+                        _glob.lastSet = false;
+                        _glob._lastDragId = false;
+                        _glob._dragging = false;
+                        document.body.classList.remove("drag-moving");
+                        document.body.style.userSelect = "";
+                        document.querySelectorAll("iframe").forEach(function(iframe){
+                            iframe.style.pointerEvents = "";
+                        })
+                    }
+                    window.addEventListener("pointermove",function(e){
+                        if((e.buttons === 1 || e.pointerType === "touch") && _glob._dragging){
+                            console.log(e,e.target.offsetLeft,e.clientX,e.layerX);
+                            _glob._dragger.style.left = e.clientX - _glob._dragData.offsetLeft + "px";
+                            _glob._dragger.style.top =  e.clientY - _glob._dragData.offsetTop + "px";
                             var maxHeight = _glob.tabLayoutWrapper.clientHeight;
                             var maxWidth = _glob.tabLayoutWrapper.clientWidth;
-                            var cX = e.layerX;
-                            var cY = e.layerY;
+                            var cX = e.clientX;
+                            var cY = e.clientY;
                             var pos = cX / maxWidth > cY / maxHeight;
                             pos = (cX > maxWidth / 4 && cX < maxWidth / 4 * 3 && cY > maxHeight / 4 && cY < maxHeight / 4 * 3) ? "center" :
                                 (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth) > 0 ? pos ? "top" : "left" : pos ? "right" : "bottom";
@@ -287,6 +358,77 @@
                                     _glob.tabLayoutWrapper.children[2].classList.add("center");
                                 }
                             }
+                            //dragger.style.transform = "translate(" + e.layerX + "px," + e.layerY + "px)";
+                        }else{
+                            dropHandler();
+                        }
+                    })
+                    window.addEventListener("pointerup",function(e){
+                        dropHandler();
+                    })
+
+
+                    this.lastSet = false;
+                    this._lastDragId = false;
+                    var htmlContent =
+                        "<div class=\"split-view\">" +
+                        "<div class=\"tab-name-wrapper\"></div>" +
+                        "<div class=\"tab-content\"></div>" +
+                        "</div>";
+                    element.innerHTML = htmlContent + htmlContent + "<div class=\"split-view-preview\"></div><div class=\"temp-tabs\"></div>";
+                    element.style.display = "flex";
+                    element.style.verticalAlign = "stretch";
+                    element.style.position = "relative";
+                    /*element.addEventListener("dragover",function(e) {
+                        if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
+                            var maxHeight = _glob.tabLayoutWrapper.clientHeight;
+                            var maxWidth = _glob.tabLayoutWrapper.clientWidth;
+                            var cX = e.layerX;
+                            var cY = e.layerY;
+                            var pos = cX / maxWidth > cY / maxHeight;
+                            pos = (cX > maxWidth / 4 && cX < maxWidth / 4 * 3 && cY > maxHeight / 4 && cY < maxHeight / 4 * 3) ? "center" :
+                                (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth) > 0 ? pos ? "top" : "left" : pos ? "right" : "bottom";
+                            //console.log(pos)
+                            //console.log((e.layerX/maxWidth),(e.layerY/maxHeight));
+                            if(pos === "top") {
+                                if(_glob.lastSet !== "top") {
+                                    _glob.lastSet = "top";
+                                    /*_glob.tabLayoutWrapper.children[2].classList.remove("right");
+                                    _glob.tabLayoutWrapper.children[2].classList.remove("center");*
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("top");
+                                }
+                            } else if(pos === "left") {
+                                if(_glob.lastSet !== "left") {
+                                    _glob.lastSet = "left";
+                                    /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                    _glob.tabLayoutWrapper.children[2].classList.remove("center");*
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("left");
+                                }
+                            } else if(pos === "right") {
+                                if(_glob.lastSet !== "right") {
+                                    _glob.lastSet = "right";
+                                    /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                    _glob.tabLayoutWrapper.children[2].classList.remove("center");*
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("right");
+                                }
+                            } else if(pos === "bottom") {
+                                if(_glob.lastSet !== "bottom") {
+                                    _glob.lastSet = "bottom";
+                                    /*_glob.tabLayoutWrapper.children[2].classList.remove("left");
+                                    _glob.tabLayoutWrapper.children[2].classList.remove("center");*
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("bottom");
+                                }
+                            } else {
+                                if(_glob.lastSet !== "center") {
+                                    _glob.lastSet = "center";
+                                    _glob.tabLayoutWrapper.children[2].className = "split-view-preview active";
+                                    _glob.tabLayoutWrapper.children[2].classList.add("center");
+                                }
+                            }
                             e.preventDefault();
                             //return false;
                         }
@@ -300,19 +442,19 @@
                             //e.preventDefault();
                             //e.bubbles = false;
                             e.stopPropagation();
-                        }*/
+                        }*
                     })
                     element.addEventListener("dragenter",function(e) {
                         //console.log(e,e.dataTransfer.getData("text/plain"),_glob);
                         //if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
-                        e.preventDefault();
+                        //e.preventDefault();
                         //return false;
                         //}
                         /*if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")){
                             //e.preventDefault();
                             //e.bubbles = false;
                             e.stopPropagation();
-                        }*/
+                        }*
                     })
                     element.addEventListener("drop",function(e) {
                         console.log(e,_glob)
@@ -333,7 +475,7 @@
                         for(var i in _glob.tabs) {
                             _glob.tabs[i].tab.element.style.pointerEvents = "auto";
                         }
-                    })
+                    })*/
                     /**
                      * 
                      * @type {(1|2|3)}
@@ -411,8 +553,8 @@
                     tabName.classList.add("tab-name");
                     tabName.setAttribute("data-tab-id",tab.id);
                     tabName.innerText = tab.name;
-                    tabName.draggable = true;
-                    /*tabName.addEventListener("touchstart",function(e) {
+                    /*tabName.draggable = true;
+                    tabName.addEventListener("touchstart",function(e) {
                         //console.log(e);
                         /*e.preventDefault();
                         return false;*
@@ -448,21 +590,26 @@
 
                     })*/
                     tabName.addEventListener("pointermove",function(e){
-                        if((e.buttons === 1 || e.pointerType === "touch") && !_glob.dragging){
+                        if((e.buttons === 1 || e.pointerType === "touch") && !_glob._dragging){
                             //console.log(e,e.target.offsetLeft,e.clientX,e.layerX);
                             e.target.style.width = e.target.clientWidth + "px";
                             e.target.style.height = e.target.clientHeight + "px";
                             while (e.target.childNodes.length > 0) {
-                                _glob.dragger.appendChild(e.target.childNodes[0]);
+                                _glob._dragger.appendChild(e.target.childNodes[0]);
                             }
                             var br = e.target.getBoundingClientRect();
-                            _glob.dragData.offsetLeft = e.clientX - br.left;
-                            _glob.dragData.offsetTop = e.clientY - br.top;
-                            _glob.dragData.element = e.target;
+                            _glob._dragData.offsetLeft = e.clientX - br.left;
+                            _glob._dragData.offsetTop = e.clientY - br.top;
+                            _glob._dragData.element = e.target;
 
-                            _glob.dragger.style.left = e.clientX - _glob.dragData.offsetLeft + "px";
-                            _glob.dragger.style.top = e.clientY - _glob.dragData.offsetTop + "px";
-                            _glob.dragging = true;
+                            _glob._dragger.style.left = e.clientX - _glob._dragData.offsetLeft + "px";
+                            _glob._dragger.style.top = e.clientY - _glob._dragData.offsetTop + "px";
+                            document.body.classList.add("drag-moving");
+                            document.body.style.userSelect = "none";
+                            document.querySelectorAll("iframe").forEach(function(iframe){
+                                iframe.style.pointerEvents = "none";
+                            })
+                            _glob._dragging = true;
                         }
                     })
                     tabName.addEventListener("click",function(e) {
@@ -648,7 +795,9 @@
    #id.class{
        color: red;
    }
-\`\`\`</textarea>`;
+\`\`\`
+</textarea>
+`;
 
             tabLayout.addTab(optionsTab,1,false);
             tabLayout.addTab(previewTab,1,false);
@@ -773,7 +922,7 @@
 
             var mdEditor = new MarkdownEditor(ed);
 
-            ed.on("dragover",function(cm,e) {
+            /*ed.on("dragover",function(cm,e) {
                 console.log(" 11over",e)
                 if(e.dataTransfer.getData("text/plain").startsWith("-tab-drag-id:")) {
                     e.stopPropagation();
