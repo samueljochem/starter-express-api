@@ -28,7 +28,7 @@
         <script src="static/marked.min.js"></script>
         <style>
             :root {
-                --tab-height: 20px;
+                --tab-height: 40px;
             }
 
             * {
@@ -507,7 +507,7 @@
                         }
                     }
                 ],`
-                <iframe title="Select a file" src="upload"></iframe>
+                <iframe style="min-height:inherit;border:none;" title="Select a file" src="upload"></iframe>
                 `)
                 filePicker.show();
                 window.addEventListener("message",function(e){
@@ -582,9 +582,9 @@
             var tabLayout = new TabLayout(document.querySelector("main"));
             var optionsTab = new Tab("Options","options");
             optionsTab.element.innerHTML = `
-<label for="post-title">Title:</label><input id="post-title"><br>
-<label for="post-keywords">Keywords:</label><input id="post-keywords"><br>
-<label for="post-des">Description:</label><input id="post-des"><br>
+<label for="post-title">Title:</label><input class="textfield" id="post-title"><br>
+<label for="post-keywords">Keywords:</label><input class="textfield" id="post-keywords"><br>
+<label for="post-des">Description:</label><input class="textfield" id="post-des"><br>
 <label for="post-image">Image:</label><input class="button-primary" type="button" value="Pick an image" id="post-image" onclick="imageSelect();"><br>
 <img alt="Post image" width="400">
             `;
@@ -641,16 +641,16 @@
             });*/
             var cmEditorButtons = document.querySelector("#markdown-editor>div");
             cmEditorButtons.innerHTML =
-                "<button onclick='mdEditor.setHeading(1);'>H1</button>" +
-                "<button onclick='mdEditor.setHeading(2);'>H2</button>" +
-                "<button onclick='mdEditor.setHeading(3);'>H3</button>" +
-                "<button onclick='mdEditor.setHeading(4);'>H4</button>" +
-                "<button onclick='mdEditor.setHeading(5);'>H5</button>" +
-                "<button onclick='mdEditor.setHeading(6);'>H6</button>" +
-                "<button onclick='mdEditor.setBold();'><b>B</b></button>" +
-                "<button onclick='mdEditor.setItalic();'><i>i</i></button>" +
-                "<button onclick='mdEditor.setUnderline();'><u>U</u></button>" +
-                "<button onclick='mdEditor.setDel();'><del>a</del></button>";
+                '<button class="button-subtle" onclick="mdEditor.setHeading(1);">H1</button>' +
+                '<button class="button-subtle" onclick="mdEditor.setHeading(2);">H2</button>' +
+                '<button class="button-subtle" onclick="mdEditor.setHeading(3);">H3</button>' +
+                '<button class="button-subtle" onclick="mdEditor.setHeading(4);">H4</button>' +
+                '<button class="button-subtle" onclick="mdEditor.setHeading(5);">H5</button>' +
+                '<button class="button-subtle" onclick="mdEditor.setHeading(6);">H6</button>' +
+                '<button class="button-subtle" onclick="mdEditor.setBold();"><b>B</b></button>' +
+                '<button class="button-subtle" onclick="mdEditor.setItalic();"><i>i</i></button>' +
+                '<button class="button-subtle" onclick="mdEditor.setUnderline();"><u>U</u></button>' +
+                '<button class="button-subtle" onclick="mdEditor.setDel();"><del>s</del></button>';
             var cmEditorArea = document.querySelector("#markdown-editor>textarea");
             //var ckEditor = document.querySelector("#ckeditor");
             //var ed = ClassicEditor.create(ckEditor);
@@ -797,7 +797,9 @@
             ed.on("change",function(cm,changes) {
 
                 console.log("changed",cm);
-                previewIframe.srcdoc = marked.parse(cm.getValue());
+                previewIframe.srcdoc = 
+                    '<link rel="stylesheet" href="./static/styles.css">'+
+                    marked.parse(cm.getValue());
             });
             ed.on("keydown",function(cm,e) {
                 if(e.ctrlKey && e.key === "b") {

@@ -5,8 +5,9 @@
         right: 0;
         bottom: 0;
         left: 0;
-        background-color: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(7px);
+        /*background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(7px);*/
+        background-color: var(--cms-blanket, rgba(9, 30, 66, 0.54));
     }
 
     .dialog-wrapper>.dialog-box {
@@ -16,14 +17,26 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background-color: white;
-        border-radius: 0.5rem;
-        max-width: 350px;
+        background-color: var(--cms-surface-overlay, #FFFFFF);
+        color: var(--cms-text, var(--cms-text, #091E42));
+        /*border-radius: 0.5rem;*/
+        max-width: 400px;
+        border-radius: 3px;
+        box-shadow:
+            var(--cms-shadow-overlay,
+                0 0 0 1px rgba(9, 30, 66, 0.08),
+                0 2px 1px rgba(9, 30, 66, 0.08),
+                0 0 20px -6px rgba(9, 30, 66, 0.31)
+            );
     }
 
     .dialog-wrapper>.dialog-box>hr {
         margin: 0;
         color: rgba(100, 100, 100, 0.4);
+    }
+
+    .dialog-wrapper>.dialog-box * {
+        color: var(--cms-text-subtle, #42526E);
     }
 
     .dialog-wrapper>.dialog-box>.dialog-head,
@@ -35,7 +48,7 @@
     }
 
     .dialog-wrapper>.dialog-box>.dialog-content {
-        min-height: 150px;
+        min-height: 250px;
         padding: 0.5rem;
     }
 
@@ -44,15 +57,15 @@
     }
 
     .dialog-wrapper>.dialog-box>.dialog-actions>button {
-        border-radius: 0.5rem;
+        /*border-radius: 0.5rem;
         border: 0;
         padding: 0.3rem;
         color: white;
-        cursor: pointer;
+        cursor: pointer;*/
     }
 
     .dialog-wrapper>.dialog-box>.dialog-head>.dialog-close {
-        color: red;
+        /*color: red;*/
         cursor: pointer;
     }
 </style>
@@ -84,13 +97,16 @@
             })
             this.element.querySelector(".dialog-content").innerHTML = content;
             var ACTIONS = {
-                "danger": "red",
-                "info": "blue",
-                "ok": "green"
+                "subtle": "button-subtle",
+                "danger": "button-danger",
+                "warning": "button-warning",
+                "info": "button-information",
+                "ok": "button-information"
             }
             for(var i of actions) {
                 var button = document.createElement("button");
-                button.style.backgroundColor = ACTIONS[(i.level || "info")];
+                //button.style.backgroundColor = ACTIONS[(i.level || "info")];
+                button.classList.add(ACTIONS[(i.level || "info")]);
                 button.innerText = i.name;
                 button.onclick = function(e) {
                     i.onClicked(e,_glob);

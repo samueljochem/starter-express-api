@@ -1,26 +1,37 @@
 <style>
-    .dropdown-back{
+    .dropdown-back {
         position: fixed;
         inset: 0;
         display: none;
     }
-    .dropdown-back>.dropdown-list{
+
+    .dropdown-back>.dropdown-list {
         position: absolute;
-        background-color: rgba(0,0,0,0.5);
+        background-color: var(--cms-surface-overlay, #FFFFFF);
+        border-radius: 3px;
+        box-shadow: var(--cms-shadow-overlay, 0 4px 8px -2px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31));
+        overflow: auto;
+        /*background-color: rgba(0,0,0,0.5);*/
         padding: 0;
         margin: 0;
         list-style: none;
     }
+    .dropdown-back>.dropdown-list>li {
+        padding-inline: var(--cms-space-200, 16px);
+        min-height: 16px;
+        font-size: var(--cms-font-size-100, 16px);
+        text-align: left;
+    }
 </style>
 <script>
-    class Dropdown{
-        constructor(element,options){
+    class Dropdown {
+        constructor(element,options) {
             var _glob = this;
             this.isOpen = false;
-            element.addEventListener("click",function(){
-                if(_glob.isOpen){
+            element.addEventListener("click",function() {
+                if(_glob.isOpen) {
                     _glob.hide();
-                }else{
+                } else {
                     _glob.show();
                 }
             })
@@ -28,21 +39,22 @@
             this.parent = element;
             this.element = document.createElement("div");
             this.element.classList.add("dropdown-back");
-            this.element.addEventListener("pointerdown",function(e){
-                if(e.target === _glob.element){
+            this.element.addEventListener("pointerdown",function(e) {
+                if(e.target === _glob.element) {
                     _glob.hide();
                 }
             })
             var ul = document.createElement("ul");
             ul.classList.add("dropdown-list");
-            for(var i = 0;i < options.length;i++){
+            for(var i = 0; i < options.length; i++) {
                 console.log(options[i],options[i].onClicked.toString());
-                if(options[i] === "hr"){
+                if(options[i] === "hr") {
                     ul.innerHTML += "<hr>";
-                }else{
+                } else {
                     var option = document.createElement("li");
-                    option.addEventListener("click", function(e){
-                        var indx = Array.prototype.indexOf.call(e.target.parentElement.children, e.target);
+                    option.classList.add("button-subtle");
+                    option.addEventListener("click",function(e) {
+                        var indx = Array.prototype.indexOf.call(e.target.parentElement.children,e.target);
                         _glob.options[indx].onClicked(e,_glob);
                         console.log(i,e.target.innerHTML);
                     });
@@ -54,7 +66,7 @@
             this.element.appendChild(ul);
             document.body.appendChild(this.element);
         }
-        show(){
+        show() {
             var parent = this.parent;
             var x = parent.offsetLeft;
             var y = parent.offsetTop + parent.offsetHeight;
@@ -63,7 +75,7 @@
             this.element.style.display = "block";
             this.isOpen = true;
         }
-        hide(){
+        hide() {
             this.element.style.display = "none";
             this.isOpen = false;
         }

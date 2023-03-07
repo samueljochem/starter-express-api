@@ -1,20 +1,34 @@
 <style>
-    .notification-wrapper{
+    .notification-wrapper {
         position: fixed;
         bottom: 0;
         right: 0;
     }
-    .notification-wrapper>.notification-box{
+
+    .notification-wrapper>.notification-box {
         margin: 12px;
-        background-color: white;
-        width: 300px;
+        /*background-color: white;
+        box-shadow: 0 0 15px 1px black;*/
         max-width: 100vw;
-        box-shadow: 0 0 15px 1px black;
+        border: medium none;
+        display: block;
+        padding: var(--cms-space-200, 16px);
+        position: relative;
+        background-color: var(--cms-surface-overlay, #FFFFFF);
+        border-radius: var(--cms-radius-100, 3px);
+        box-shadow: var(--cms-shadow-overlay, 0px 8px 12px #091e423f, 0px 0px 1px #091e424f);
+        z-index: 600;
+        overflow: hidden;
+        width: 400px;
     }
 
     .notification-wrapper>.notification-box>hr {
         margin: 0;
         color: rgba(100, 100, 100, 0.4);
+    }
+
+    .notification-wrapper>.notification-box * {
+        color: var(--cms-text-subtle, #42526E);
     }
 
     .notification-wrapper>.notification-box>.notification-head,
@@ -43,15 +57,15 @@
     }
 
     .notification-wrapper>.notification-box>.notification-head>.notification-close {
-        color: red;
+        /*color: red;*/
         cursor: pointer;
     }
 </style>
 <script>
-    class HTMLNotification{
-        constructor(title, html){
+    class HTMLNotification {
+        constructor(title,html) {
             var _glob = this;
-            if(!document.querySelector(".notification-wrapper")){
+            if(!document.querySelector(".notification-wrapper")) {
                 var wrapper = document.createElement("div");
                 wrapper.classList.add("notification-wrapper");
                 document.body.appendChild(wrapper);
@@ -64,24 +78,26 @@
                 <div class="notification-title"></div>
                 <div class="notification-close">X</div>
             </div>
-            <div class="notification-content">${(html||"")}</div>
+            <div class="notification-content">${(html || "")}</div>
             `;
             this.element.querySelector(".notification-title").innerText = title;
-            this.element.querySelector(".notification-close").addEventListener("click",function(){
+            this.element.querySelector(".notification-close").addEventListener("click",function() {
                 _glob.hide();
             })
             document.querySelector(".notification-wrapper").appendChild(this.element);
             this.element.style.display = "none";
         }
-        show(){
+        show() {
             document.querySelector(".notification-wrapper").appendChild(this.element);
             this.element.style.display = "block";
         }
-        hide(){
+        hide() {
             this.element.style.display = "none";
         }
-        updateContent(html){
+        updateContent(html) {
             this.element.querySelector(".notification-content").innerHTML = html;
         }
     }
+    /*var nf = new HTMLNotification("Hello there!",'<progress class="progressbar" valu="30" max="100"></progress>');
+    nf.show();*/
 </script>

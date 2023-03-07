@@ -30,6 +30,14 @@
             width: 20px;
             height: 20px;
         }
+        #toolbar{
+            position: sticky;
+            top: 0;
+            background: linear-gradient(180deg, rgba(9, 30, 66, 0.13) 0, rgba(9, 30, 66, 0.13) 1px, rgba(9, 30, 66, 0.08) 1px, rgba(9, 30, 66, 0) 4px);
+            background-color: var(--cms-surface, #FFFFFF);
+            color: var(--cms-text-subtlest, #6B778C);
+            border-bottom: 1px solid var(--cms-border, #091E4224);
+        }
         #path{
             display: flex;
             flex-direction: row;
@@ -137,24 +145,25 @@
             text-align: end;
         }
     </style>
+    <link rel="stylesheet" href="./static/styles.css">
 </head>
 <body>
     <div id="toolbar">
         <div id="options">
-            <button class="new-options"><img class="m-icon" alt="Add icon" src="static/icons/add-circle.svg"><span>New</span></button>
-            <button id="up-button"><img class="m-icon" alt="Upload icon" src="static/icons/upload.svg"></button>
-            <button id="del-button"><img class="m-icon" alt="Delete icon" src="static/icons/delete.svg"></button>
+            <button class="button-subtle new-options"><img class="m-icon" alt="Add icon" src="static/icons/add-circle.svg"><span>New</span></button>
+            <button class="button-subtle" id="up-button"><img class="m-icon" alt="Upload icon" src="static/icons/upload.svg"></button>
+            <button class="button-subtle" id="del-button"><img class="m-icon" alt="Delete icon" src="static/icons/delete.svg"></button>
         </div>
         <div id="path">
-            <button><img class="m-icon" alt="Go up icon" src="static/icons/arrow-upward.svg"></button>
+            <button class="button-subtle"><img class="m-icon" alt="Go up icon" src="static/icons/arrow-upward.svg"></button>
             <div class="path-input-wrapper no-input-focus">
                 <form class="path-input-form" action="#" method="dialog">
                     <input pattern=".*" id="path-input" type="text" aria-label="Path" value="/" autocapitalize="off" autocomplete="off">
                 </form>
                 <div class="path-visual">
-                    <button><img class="m-icon" alt="Folder icon" src="static/icons/folder.svg"><span>Root</span></button>
+                    <button class="button-subtle"><img class="m-icon" alt="Folder icon" src="static/icons/folder.svg"><span>Root</span></button>
                 </div>
-                <button class="path-refresh" onclick="viewFolder()"><img class="m-icon" alt="Refesh icon" src="static/icons/refresh.svg"></button>
+                <button class="button-subtle path-refresh" onclick="viewFolder()"><img class="m-icon" alt="Refesh icon" src="static/icons/refresh.svg"></button>
             </div>
         </div>
     </div>
@@ -162,7 +171,7 @@
         <div></div>
         <div id="files">
             <% for(var i in fileUploads.childs){ %>
-                <div class="f-wrapper">
+                <div class="f-button-subtle f-wrapper">
                     <% if(fileUploads.childs[i].type === "file"){ %>
                     <div class="file-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="48" height="48" viewBox="0,0,256,256">
@@ -208,13 +217,14 @@
             }
             path = path.split("/").splice(1);
             console.log(path);
-            visualPath.innerHTML = '<button><img class="m-icon" alt="Folder icon" src="static/icons/folder.svg"><span>Root</span></button>';
+            visualPath.innerHTML = '<button class="button-subtle"><img class="m-icon" alt="Folder icon" src="static/icons/folder.svg"><span>Root</span></button>';
             var cleanPath = "/";
             if(!currentFS.root){
                 for(var i of path){
                     cleanPath += i + "/";
                     visualPath.innerHTML += '<img class="m-icon" alt="Chevron right icon" src="static/icons/chevron-right.svg">';
                     var folderButton = document.createElement("button");
+                    folderButton.classList.add("button-subtle");
                     folderButton.innerHTML = "<span></span>";
                     folderButton.children[0].innerText = i;
                     visualPath.appendChild(folderButton);
@@ -244,6 +254,7 @@
                 filesElement.innerHTML = "";
                 for(var i in currentFS.childs){
                     var fWrapper = document.createElement("div");
+                    fWrapper.classList.add("f-button-subtle");
                     fWrapper.classList.add("f-wrapper");
                     fWrapper.innerHTML = ((currentFS.childs[i].type === "file")?`
                     <div class="file-icon">
@@ -301,6 +312,7 @@
         var standaloneFileManager = true;
         console.log(!!window.parent.standaloneFileManager);
         if(!window.parent.standaloneFileManager){
+            document.querySelector("body").style.backgroundColor = "var(--cms-surface-overlay, #FFFFFF)";
             document.querySelector("#toolbar>#options").style.display = "none";
             window.parent.onmessage = function(e){
                 if(e.data === "get selected"){
@@ -344,7 +356,7 @@
                     drop.hide();
                     createDialog.setTitle("Create new folder");
                     createDialog.setContent(`
-                    <label for="new-folder-name">Folder name</label><input id="new-folder-name" value="New Folder">
+                    <label for="new-folder-name">Folder name</label><input class="textfield" id="new-folder-name" value="New Folder">
                     `);
                     createDialog.show();
                     createDialog.element.querySelector("input").select();
@@ -356,7 +368,7 @@
                     drop.hide();
                     createDialog.setTitle("Create new file");
                     createDialog.setContent(`
-                    <label for="new-file-name">File name</label><input id="new-file-name" value="New file.txt">
+                    <label for="new-file-name">File name</label><input class="textfield" id="new-file-name" value="New file.txt">
                     `);
                     createDialog.show();
                     createDialog.element.querySelector("input").select();
@@ -408,7 +420,7 @@
                         var uploadProgress = new HTMLNotification("File upload",`
                         <label>
                             <span class="upload-file-name"></span>
-                            <progress value="0" max="100"></progress>
+                            <progress class="progressbar" max="100"></progress>
                             <span class="upload-percent">0%</span>
                         </label>
                         `);
