@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag</title>
+    <style>
+        html,body{
+            height: 100%;
+            width: 100%;
+            margin: 0;
+        }
+        .tabs{
+            display: flex;
+        }
+        .tab{
+            background-color: grey;
+            border: 1px solid black;
+            user-select: none;
+        }
+        .dragger{
+            position: fixed;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <div class="tab">TAB</div>
+        <div class="tab">TAB</div>
+        <div class="tab">TAB</div>
+        <div class="tab">TAB</div>
+    </div>
+    <div class="dragger"></div>
+    <script>
+        var dragging = false;
+        var dragData = {};
+        var dragger = document.querySelector(".dragger");
+        document.querySelectorAll(".tab").forEach(function(element){
+            element.addEventListener("pointermove",function(e){
+                if((e.buttons === 1 || e.pointerType === "touch") && !dragging){
+                    //console.log(e,e.target.offsetLeft,e.clientX,e.layerX);
+                    e.target.style.width = e.target.clientWidth + "px";
+                    e.target.style.height = e.target.clientHeight + "px";
+                    while (e.target.childNodes.length > 0) {
+                        dragger.appendChild(e.target.childNodes[0]);
+                    }
+                    var br = e.target.getBoundingClientRect();
+                    dragData.offsetLeft = e.clientX - br.left;
+                    dragData.offsetTop = e.clientY - br.top;
+                    dragData.element = e.target;
+
+                    dragger.style.left = e.clientX - dragData.offsetLeft + "px";
+                    dragger.style.top = e.clientY - dragData.offsetTop + "px";
+                    dragging = true;
+                }
+            })
+        });
+        window.addEventListener("pointermove",function(e){
+            if((e.buttons === 1 || e.pointerType === "touch") && dragging){
+                console.log(e,e.target.offsetLeft,e.clientX,e.layerX);
+                dragger.style.left = e.clientX - dragData.offsetLeft + "px";
+                dragger.style.top =  e.clientY - dragData.offsetTop + "px";
+                //dragger.style.transform = "translate(" + e.layerX + "px," + e.layerY + "px)";
+            }else{
+                if(dragging){
+                    while (dragger.childNodes.length > 0) {
+                        dragData.element.style.width = "";
+                        dragData.element.style.height = "";
+                        dragData.element.appendChild(dragger.childNodes[0]);
+                    }
+                }
+                dragging = false;
+            }
+        })
+        window.addEventListener("pointerup",function(e){
+            if(dragging){
+                while (dragger.childNodes.length > 0) {
+                    dragData.element.style.width = "";
+                    dragData.element.style.height = "";
+                    dragData.element.appendChild(dragger.childNodes[0]);
+                }
+            }
+            dragging = false;
+        })
+    </script>
+</body>
+</html>

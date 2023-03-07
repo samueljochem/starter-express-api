@@ -210,6 +210,7 @@
                 <button>Publish</button>
             </div>
         </main>
+        <div class="dragger"></div>
         <%- include("scripts/dialog") %>
         <script>
             class TabLayout {
@@ -220,6 +221,11 @@
                  */
                 constructor(element) {
                     var _glob = this;
+                    /*NEW*/
+                    this._dragging = false;
+                    this._dragData = {};
+                    this._dragger = document.querySelector(".dragger");
+
                     this.lastSet = false;
                     this._lastDragId = false;
                     var htmlContent =
@@ -406,10 +412,10 @@
                     tabName.setAttribute("data-tab-id",tab.id);
                     tabName.innerText = tab.name;
                     tabName.draggable = true;
-                    tabName.addEventListener("touchstart",function(e) {
+                    /*tabName.addEventListener("touchstart",function(e) {
                         //console.log(e);
                         /*e.preventDefault();
-                        return false;*/
+                        return false;*
                     })
                     tabName.addEventListener("dragstart",function(e) {
                         console.log(e,_glob.tabs);
@@ -423,7 +429,7 @@
                           tab.children.forEach(function(tabChild){
                             tabChild.style.pointerEvents = "none";
                           })
-                        })*/
+                        })*
                     })
                     tabName.addEventListener("touchleave",function(e) {
                         console.log(e,_glob);
@@ -440,6 +446,24 @@
                             _glob._lastDragId = false;
                         }
 
+                    })*/
+                    tabName.addEventListener("pointermove",function(e){
+                        if((e.buttons === 1 || e.pointerType === "touch") && !_glob.dragging){
+                            //console.log(e,e.target.offsetLeft,e.clientX,e.layerX);
+                            e.target.style.width = e.target.clientWidth + "px";
+                            e.target.style.height = e.target.clientHeight + "px";
+                            while (e.target.childNodes.length > 0) {
+                                _glob.dragger.appendChild(e.target.childNodes[0]);
+                            }
+                            var br = e.target.getBoundingClientRect();
+                            _glob.dragData.offsetLeft = e.clientX - br.left;
+                            _glob.dragData.offsetTop = e.clientY - br.top;
+                            _glob.dragData.element = e.target;
+
+                            _glob.dragger.style.left = e.clientX - _glob.dragData.offsetLeft + "px";
+                            _glob.dragger.style.top = e.clientY - _glob.dragData.offsetTop + "px";
+                            _glob.dragging = true;
+                        }
                     })
                     tabName.addEventListener("click",function(e) {
                         console.log(e,e.target,_glob)
