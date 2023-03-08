@@ -73,6 +73,7 @@
 
             .tab-name {
                 cursor: pointer;
+                user-select: none;
                 /*touch-action: manipulation;
                 overscroll-behavior: none;*/
             }
@@ -305,15 +306,21 @@
                             iframe.style.pointerEvents = "";
                         })
                     }
-                    window.addEventListener("pointermove",function(e){
-                        if((e.buttons === 1 || e.pointerType === "touch") && _glob._dragging){
-                            console.log(e,e.target.offsetLeft,e.clientX,e.layerX);
-                            _glob._dragger.style.left = e.clientX - _glob._dragData.offsetLeft + "px";
-                            _glob._dragger.style.top =  e.clientY - _glob._dragData.offsetTop + "px";
+                    //window.addEventListener("mousemove",handleDrag);
+                    window.addEventListener("touchmove",handleDrag);
+                    window.addEventListener("touchend",handleDrag);
+                    window.addEventListener("pointermove",handleDrag);
+                    window.addEventListener("pointerup",handleDrag);
+                    function handleDrag(e){
+                        console.log(e);
+                        if((e.buttons === 1 || e.pointerType === "touch" || e.type.includes("touch")) && e.type !== "touchend" && _glob._dragging){
+                            //console.log(e,e.target.offsetLeft,e.clientX,e.layerX);
+                            _glob._dragger.style.left = (e.clientX||e.targetTouches[0].clientX) - _glob._dragData.offsetLeft + "px";
+                            _glob._dragger.style.top =  (e.clientY||e.targetTouches[0].clientY) - _glob._dragData.offsetTop + "px";
                             var maxHeight = _glob.tabLayoutWrapper.clientHeight;
                             var maxWidth = _glob.tabLayoutWrapper.clientWidth;
-                            var cX = e.clientX;
-                            var cY = e.clientY;
+                            var cX = e.clientX || e.targetTouches[0].clientX;
+                            var cY = e.clientY || e.targetTouches[0].clientY;
                             var pos = cX / maxWidth > cY / maxHeight;
                             pos = (cX > maxWidth / 4 && cX < maxWidth / 4 * 3 && cY > maxHeight / 4 && cY < maxHeight / 4 * 3) ? "center" :
                                 (0 - maxWidth) * (cY - 0) - (maxHeight - 0) * (cX - maxWidth) > 0 ? pos ? "top" : "left" : pos ? "right" : "bottom";
@@ -362,7 +369,7 @@
                         }else{
                             dropHandler();
                         }
-                    })
+                    }
                     window.addEventListener("pointerup",function(e){
                         dropHandler();
                     })
@@ -589,7 +596,9 @@
                         }
 
                     })*/
-                    tabName.addEventListener("pointermove",function(e){
+                    tabName.addEventListener("pointermove",startDrag);
+                    tabName.addEventListener("pointerover",startDrag);
+                    function startDrag(e){
                         if((e.buttons === 1 || e.pointerType === "touch") && !_glob._dragging){
                             //console.log(e,e.target.offsetLeft,e.clientX,e.layerX);
                             e.target.style.width = e.target.clientWidth + "px";
@@ -611,7 +620,7 @@
                             })
                             _glob._dragging = true;
                         }
-                    })
+                    }
                     tabName.addEventListener("click",function(e) {
                         console.log(e,e.target,_glob)
                         _glob.setTabPosition(e.target.getAttribute("data-tab-id"),_glob.tabs[e.target.getAttribute("data-tab-id")].position,true);
@@ -662,6 +671,11 @@
             }
         </script>
         <script>
+            ["pointerleave","pointerover","pointerenter"].forEach(function(ev){
+                window.addEventListener(ev,function(e){
+                  console.log(e);
+                })
+              })
             function pickFile(cb){
                 var i = 0;
                 var fileSelect = {
