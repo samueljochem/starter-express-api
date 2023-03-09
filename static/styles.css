@@ -92,6 +92,16 @@ h6 {
     line-height: var(--cms-font-lineHeight-300, 20px);
 }
 
+button>*,
+.path-input-wrapper * {
+    vertical-align: middle;
+}
+
+img.m-icon {
+    width: 20px;
+    height: 20px;
+}
+
 /*
 BUTTON
 */
@@ -279,6 +289,8 @@ TEXTFIELD
     overflow: hidden;
     transition: background-color 0.2s ease-in-out 0s,
         border-color 0.2s ease-in-out 0s;
+    height: 2.28571em;
+    line-height: 2.28571em;
 }
 
 .textfield:focus {
@@ -315,21 +327,22 @@ PROGRESS BAR
 }
 
 .progressbar::-webkit-progress-bar,
-.progressbar::-webkit-progress-inner-element{
+.progressbar::-webkit-progress-inner-element {
     background-color: transparent;
 }
-.progressbar::-webkit-progress-value{
+
+.progressbar::-webkit-progress-value {
     background: var(--cms-background-success-bold, #36B37E);
     height: 6px;
     border-radius: 3px;
     transition: width 0.1s ease;
 }
 
-.progressbar:after{
+.progressbar:after {
     display: none;
 }
 
-.progressbar:indeterminate:after{
+.progressbar:indeterminate:after {
     content: "";
     inset: 0;
     height: 6px;
@@ -347,17 +360,17 @@ TABS
 */
 
 .tab-name-wrapper {
+    position: relative;
     border: medium none;
     height: unset;
 }
 
-.tab-name-wrapper:before {
+.tab-name-wrapper:after {
     content: "";
     border-radius: 2px;
     bottom: 0px;
     margin: 0px;
     position: absolute;
-    width: inherit;
     left: 8px;
     right: 8px;
     height: 2px;

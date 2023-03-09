@@ -174,7 +174,7 @@
             }
 
             #markdown-editor>div {
-                height: var(--tab-height);
+                height: auto;
             }
 
             #markdown-editor>.CodeMirror {
@@ -192,7 +192,8 @@
             }
 
             .CodeMirror{
-                background-color: transparent;
+                /*background-color: transparent;*/
+                background: var(--cms-surface-raised);
             }
 
             .cm-s-default .cm-header {color: var(--cms-background-information-bold, blue);}
@@ -262,6 +263,7 @@
             </div>
         </main>
         <div class="dragger"></div>
+        <%- include("scripts/emojis") %>
         <%- include("scripts/dialog") %>
         <script>
             class TabLayout {
@@ -709,6 +711,52 @@
             }*/
             
             //CodeMirror.defineMIME("java",{name:"text/x-java"});
+            function markedEmoji(options) {
+                options = {
+                    unicode:false,
+                    ...options
+                };
+
+                if (!options.emojis) {
+                    throw new Error('Must provide emojis to markedEmoji');
+                }
+
+                return {
+                    extensions: [{
+                    name: 'emoji',
+                    level: 'inline',
+                    start(src) { return src.indexOf(':'); },
+                    tokenizer(src, tokens) {
+                        const rule = /^:(.+?):/;
+                        const match = rule.exec(src);
+                        if (!match) {
+                        return;
+                        }
+
+                        const name = match[1];
+                        const emoji = options.emojis[name];
+
+                        if (!emoji) {
+                        return;
+                        }
+
+                        return {
+                        type: 'emoji',
+                        raw: match[0],
+                        name,
+                        emoji
+                        };
+                    },
+                    renderer(token) {
+                        if (options.unicode) {
+                        return token.emoji;
+                        } else {
+                        return `<span style="background-image:url(\'${token.emoji}\');background-size:contain;font-size:inherit;vertical-align:-0.2ch;height:1.8ch;width:1.8ch;display:inline-block;margin:0 2px;" aria-label="${token.name}" src="${token.emoji}"></span>`;
+                        }
+                    }
+                    }]
+                };
+            }
             var markedOptions = {
                 renderer: {
                     image: function image(href,title,text) {
@@ -720,7 +768,7 @@
                     }
                 }
             }
-            marked.use(markedOptions);
+            marked.use(markedEmoji({emojis:ghEmojis}),markedOptions);
             /*ClassicEditor
                 .create(document.querySelector("#ckeditor"));
             var editor = document.querySelector("#md-editor");
@@ -800,7 +848,7 @@
    <xml></xml>
 \`\`\`
 
- \`\`\`java
+ \`\`\`text/x-java
    void main(){}
 \`\`\`
 
@@ -810,6 +858,8 @@
        color: red;
    }
 \`\`\`
+
+There is now an very :thumbsup:good :smiley:emoji support.
 </textarea>
 `;
 
@@ -834,10 +884,10 @@
                 '<button class="button-subtle" onclick="mdEditor.setHeading(4);">H4</button>' +
                 '<button class="button-subtle" onclick="mdEditor.setHeading(5);">H5</button>' +
                 '<button class="button-subtle" onclick="mdEditor.setHeading(6);">H6</button>' +
-                '<button class="button-subtle" onclick="mdEditor.setBold();"><b>B</b></button>' +
-                '<button class="button-subtle" onclick="mdEditor.setItalic();"><i>i</i></button>' +
-                '<button class="button-subtle" onclick="mdEditor.setUnderline();"><u>U</u></button>' +
-                '<button class="button-subtle" onclick="mdEditor.setDel();"><del>s</del></button>';
+                '<button class="button-subtle" onclick="mdEditor.setBold();"><img class="m-icon" alt="Format bold icon" src="./static/icons/format-bold.svg"></button>' +
+                '<button class="button-subtle" onclick="mdEditor.setItalic();"><img class="m-icon" alt="Format italic icon" src="./static/icons/format-italic.svg"></button>' +
+                '<button class="button-subtle" onclick="mdEditor.setUnderline();"><img class="m-icon" alt="Format underlined icon" src="./static/icons/format-underlined.svg"></button>' +
+                '<button class="button-subtle" onclick="mdEditor.setDel();"><img class="m-icon" alt="Format striketrough icon" src="./static/icons/format-striketrough.svg"></button>';
             var cmEditorArea = document.querySelector("#markdown-editor>textarea");
             //var ckEditor = document.querySelector("#ckeditor");
             //var ed = ClassicEditor.create(ckEditor);
