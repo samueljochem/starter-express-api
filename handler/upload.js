@@ -4,7 +4,7 @@ var ejs = require("ejs");
 module.exports = function handleUpload(req,res,parentScope,dbConnector) {
     //console.log(req.headers,req.cookies)
     var users = dbConnector.readJSON("users") || [];
-    var sessions = dbConnector.readJSON("sessions") || [];
+    //var sessions = dbConnector.readJSON("sessions") || [];
     /*if(req.method === "POST"){
         console.log("POST")
         console.log(req.body)
@@ -27,7 +27,7 @@ module.exports = function handleUpload(req,res,parentScope,dbConnector) {
             }
         }
     }*/
-    if(sessions.includes(req.cookies.auth)) {
+    if(req.user.loggedIn/*sessions.includes(req.cookies.auth)*/) {
         var fileUploads = dbConnector.readJSON("file-uploads");
         if(req.method === "GET") {
             //console.log(req);
