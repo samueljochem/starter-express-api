@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "types": ["cms"],
+        "typeRoots": ["**/*"],
+        "strict": true,
+        "module": "none",
+        "checkJs": true
+    }
+}
