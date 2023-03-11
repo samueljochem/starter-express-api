@@ -111,5 +111,5 @@ app.all("*",function(req,res){
 
 app.listen(PORT,function() {
     console.log("Listening");
-    Plugins.loadPlugins();
+    Plugins.loadPlugins(dbConnector);
 });

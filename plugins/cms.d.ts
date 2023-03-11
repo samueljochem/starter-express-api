@@ -17,7 +17,6 @@ type pluginEventType =
 "deactivate" |
 "uninstall"
 
-
 type pluginEvent = baseEvent & {
     /**
      * The name of the plugin defined in the `manifest.json`.
@@ -27,6 +26,42 @@ type pluginEvent = baseEvent & {
      * The version of the plugin defined in the `manifest.json`.
      */
     version: string
+}
+
+/**
+ * The type of the permission
+ * @todo Add permissions to the core
+ */
+type permissionType = 
+"database" |
+"file" |
+"user" |
+"theme" |
+"route"
+
+/**
+ * The type of the event
+ * 
+ * The `granted` event is triggered when the permission is granted. 
+ * The `denied` event is triggered when the permission is denied. 
+ * @todo Add permissions to the core
+ */
+type permissionEventType = 
+"granted" |
+"denied"
+
+
+type permissionEvent = baseEvent & {
+    /**
+     * The name of the permission
+     * @todo Add permissions to the core
+     */
+    name: string,
+    /**
+     * Whether the permission is allowed or not
+     * @todo Add permissions to the core
+     */
+    allowed: boolean
 }
 
 /*declare function CMS(): void;*/
@@ -130,5 +165,20 @@ declare namespace CMS {
             eventType: pluginEventType,
             eventHandler: function(pluginEvent)
         ): number
+    }
+    /**
+     * API for requesting permissions
+     * @since 0.0.1
+     * @todo Add permissions to the core
+     */
+    namespace Permission {
+        function on(
+            eventType: permissionEventType,
+            eventHandler: function(permissionEvent)
+        ): number
+        function request(
+            permission: permissionType,
+            callback?: function(permissionEvent)
+        ): Promise
     }
 }
