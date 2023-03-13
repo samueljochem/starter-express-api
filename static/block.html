@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Block</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div id="block-editor"></div>
+        <style>
+            .sidebar-left,
+            .sidebar-right {
+                background-color: var(--cms-surface, #FAFBFC);
+                color: var(--cms-text-subtle, #42526E);
+            }
+
+            .sidebar-left {
+                border-right: 1px solid var(--cms-border, #DFE1E6);
+            }
+
+            .sidebar-right {
+                border-left: 1px solid var(--cms-border, #DFE1E6);
+            }
+
+            html,body {
+                height: 100%;
+                margin: 0;
+            }
+
+            #block-editor {
+                height: 100%;
+                display: flex;
+                flex-direction: row;
+            }
+
+            #block-editor>.sidebar-left,
+            #block-editor>.sidebar-right {
+                width: 220px;
+            }
+
+            .sidebar-left>p {
+                padding-left: 20px;
+            }
+
+            .sidebar-left>.block-type-group {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-content: baseline;
+            }
+
+            .block-type {
+                display: flex;
+                flex-direction: column;
+                height: 100px;
+                width: 100px;
+                padding: 20px;
+                margin-right: auto;
+            }
+
+            .block-type>img {
+                filter: invert(1);
+            }
+
+            .block-type>span {
+                text-align: center;
+                font-size: 12px;
+            }
+
+            .tab-name-wrapper {
+                display: flex;
+            }
+
+            .tab-name-wrapper>.tab-name {
+                min-width: 50%;
+                text-align: center;
+            }
+
+            .edit-area {
+                flex: 1;
+                position: relative;
+                min-height: 100%;
+                overflow: auto;
+            }
+
+            .edit-area>div>p {
+                margin: 10px 30px;
+            }
+
+            .block-content-edit{
+                width: 100%;
+            }
+            .block-content-edit>*{
+                /*hyphens: auto;*/
+	            text-align: justify;
+                text-align-last: justify;
+                max-width: 100%;
+                white-space: break-spaces;
+                overflow-wrap: anywhere;
+            }
+
+            
+
+            .add-hr {
+                opacity: 0;
+                display: flex;
+                justify-content: center;
+                /*align-items: center;*/
+                padding: 4px 10px;
+                margin: 10px;
+                background: var(--cms-background-neutral, rgba(9, 30, 66, 0.04));
+                border-radius: 3px;
+            }
+
+            .add-hr:before {
+                /*content: "";
+                display: block;
+                padding: 0;
+                margin: 0;
+                height: 6px;
+                border-radius: 6px;
+                /*opacity: 0;*
+                background-color: var(--cms-background-brand-bold, #0052CC);
+                width: 0;
+                position: absolute;
+                transition: width 0.1s ease-in-out;*/
+            }
+
+            .add-hr>button {
+                height: 26px;
+                width: 26px;
+                border-radius: 100%;
+                padding: 0;
+                line-height: normal;
+                z-index: 20;
+                /*opacity: 0;*/
+            }
+            .add-hr>button>img {
+                filter: invert(2%);
+                width: 24px;
+                height: 24px;
+                vertical-align: middle;
+                /*transform: scale(200%,200%);*/
+            }
+            .add-hr>button.drag-button>img {
+                filter: invert(98%);
+            }
+
+            .add-hr:active>button,
+            .add-hr:hover>button {
+                opacity: 1;
+            }
+
+            .add-hr:active:before,
+            .add-hr:hover:before {
+                /*width: calc(100% - 40px);*/
+            }
+            
+            .edit-area>.add-hr,
+            .edit-area>div:focus-within>.add-hr,
+            .edit-area>div:active>.add-hr,
+            .edit-area>div:hover>.add-hr{
+                opacity: 1 !important;
+            }
+
+            .editable-block{
+                display: flex;
+                flex-direction: row;
+            }
+
+            .input-style-reset {
+                border: none;
+                outline: none;
+                background: none;
+                padding: 0;
+                margin: 0;
+                font-family: inherit;
+                color: inherit;
+            }
+        </style>
+        <script>
+            class BlockReference {
+                constructor(type,name,options) {
+                    this.type = type;
+                    this.name = name;
+                    this.options = options;
+                }
+            }
+            class Block {
+                constructor(type) {
+                    this.element = document.createElement("div");
+                    this.element.classList.add("editable-block");
+                    this.element.setAttribute("data-block-type",type);
+                    this.element.innerHTML =
+                        /*<div class="block-toolbar">
+                            <button class="button-primary">+</button>
+                            <div class="block-options"></div>
+                        </div>*/
+                        `
+                        <div class="add-hr">
+                            <button class="add-button button-primary">
+                                <img class="m-icon" src="svg/add-baseline.svg">
+                                </button>
+                                <button class="drag-button button-subtle">
+                                    <img class="m-icon" src="svg/drag_indicator-baseline.svg">
+                                </button>
+                            </div>
+                        <p class="block-content-edit"></p>
+                    `;
+                    this.type = type;
+                    console.log(type)
+                    switch(this.type) {
+                        case "heading":
+                            this.element.querySelector("p").innerHTML = `
+                            <h1 class="input-style-reset" contenteditable="true">Heading</h1>
+                            `;
+                            break;
+                        case "paragraph":
+                            this.element.querySelector("p").innerHTML = `
+                            <p class="input-style-reset" contenteditable="true">Paragraph</p>
+                            `;
+                            break;
+                        case "list":
+                            this.element.querySelector("p").innerHTML = `
+                            <ul>
+                                <li><input class="input-style-reset" value="Item 1"></li>
+                                <li><input class="input-style-reset" value="Item 2"></li>
+                            </ul>
+                            `;
+                            break;
+                        case "empty":
+                        default:
+                            this.element.querySelector("p").innerHTML = `
+                            <p class="input-style-reset" contenteditable="true">Paragraph</p>
+                            `;
+                    }
+                }
+            }
+            class PageEditor {
+                constructor(element) {
+                    var _glob = this;
+                    this.element = element;
+                    this.element.innerHTML = `
+                        <div class="sidebar-left">
+                            <p>Text</p>
+                            <div class="block-type-group">
+                                <div data-id-block="heading" class="block-type">
+                                    <img alt="Heading" src="svg/title-baseline.svg">
+                                    <span>Heading</span>
+                                </div>
+                                <div data-id-block="paragraph" class="block-type">
+                                    <img alt="Paragraph" src="svg/abc-baseline.svg">
+                                    <span>Parapraph</span>
+                                </div>
+                                <div data-id-block="list" class="block-type">
+                                    <img alt="List" src="svg/list-baseline.svg">
+                                    <span>List</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="edit-area">`
+                            //<div class="add-hr"><button class="add-button button-primary"><img class="m-icon" src="svg/add-baseline.svg"></button></div>
+                        +`</div>
+                        <div class="sidebar-right">
+                            <div class="tab-name-wrapper">
+                                <div class="active-tab tab-name">Document</div>
+                                <div class="tab-name">Block</div>
+                            </div>
+                            <div class="tab-wrapper">
+                                <div class="tab">
+                                    <details>
+                                        <summary>Meta data</summary>
+                                        <label>Title:<input></label>
+                                    </details>
+                                </div>
+                                <div class="tab"></div>
+                            </div>
+                        </div>
+                    `;
+                    this.editArea = this.element.querySelector(".edit-area");
+                    this.element.querySelectorAll(".block-type").forEach(function(blockType) {
+                        blockType.addEventListener("click",function(event) {
+                            if(_glob.active !== undefined) {
+                                var block = new Block(blockType.getAttribute("data-id-block"));
+                                //Insert the new block at the index
+                                _glob.blocks.splice(_glob.active+1,0,block);
+                                _glob.render();
+                                _glob.active += 1;
+                            }
+                        });
+                    });
+                    this.blocks = [new Block("empty")];
+                    this.active = undefined;
+                    this.render();
+                }
+                render() {
+                    var _glob = this;
+                    //this.editArea.innerHTML = '<div class="add-hr"><button class="add-button button-primary">+</button></div>';
+                    for(var i = 0; i < this.blocks.length; i++) {
+                        //if(this.editArea.children[i] === undefined) {
+                            this.editArea.appendChild(this.blocks[i].element);
+                        //}/* else if(this.blocks[i+1].element === this.editArea.children[i]){
+                            ///this.editArea.insertBefore(this.blocks[i].element,this.editArea.children[i+1]);
+                        /*}else{
+                            this.editArea.appendChild(this.blocks[i].element);
+                        }*/
+                        console.log(i+1,this.blocks[i].element,this.editArea.children[i]);
+                        //this.editArea.appendChild(this.blocks[i].element);
+                    }
+                    document.querySelectorAll(".add-button").forEach(function(button) {
+                        button.addEventListener("click",function(event) {
+                            _glob.active = Array.prototype.indexOf.call(
+                                button.parentElement.parentElement.parentElement.children,
+                                button.parentElement.parentElement
+                            );
+                            console.log(_glob.active,button,button.parentElement);
+                        });
+                    });
+                }
+            }
+            var editor = new PageEditor(document.getElementById("block-editor"));
+            document.querySelector("div[contenteditable]").addEventListener("paste", function(e) {
+                e.preventDefault();
+                var text = e.clipboardData.getData("text/plain");
+                var temp = document.createElement("div");
+                temp.innerHTML = text;
+                document.execCommand("insertHTML", false, temp.textContent);
+            });
+        </script>
+    </body>
+</html>
