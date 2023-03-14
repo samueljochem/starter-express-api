@@ -32,7 +32,10 @@ module.exports = function handleAdmin(req,res,parentScope,dbConnector){
 
                         cSessions[uuid] = users[i];
                         dbConnector.writeJSON("cSessions",cSessions);
-                        res.cookie("auth",uuid);
+                        //TODO: secure cookie if TLS
+                        res.cookie("auth",uuid,{
+                            httpOnly:true
+                        });
                     }
                 }
             }

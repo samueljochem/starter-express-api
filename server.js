@@ -19,6 +19,7 @@ var dbConnector = new DBConnector("filesystem");
 dbConnector.connect();
 dbConnector.writeJSON("test","data");
 
+app.disable("x-powered-by");
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(fileUpload());
