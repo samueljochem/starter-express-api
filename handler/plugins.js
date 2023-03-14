@@ -1,92 +1,29 @@
 var vm = require("vm");
 var fs = require("fs");
+var child_process = require("child_process");
 var UUID = require("uuid");
 
 var globalDbConnector;
 class PluginNode {
-    constructor(manifest,path) {
-        var _glob = this;
+    constructor(manifest,path,permissions) {
+        this.childProcess = child_process.fork("././handler/plugin-process.js");
+        this.childProcess.send({
+            type: "init",
+            data:{
+                manifest: manifest,
+                path: path
+            }
+        });
         this.manifest = manifest;
         this.path = path;
-        this.eventListeners = [];
-        function CMS() {}
-        /*Object.defineProperty(CMS,"Plugin",{
-            value: {
-                on: function on(eventName,eventHandler) {
-                    _glob.eventListeners.push({
-                        eventName: eventName,
-                        eventHandler: eventHandler
-                    });
-                    //console.log(eventName);
-                },
-                requestPermission: function requestPermission(permissionName,callback) {
-                    //
-                }
-            }
-        })
-        Object.defineProperty(CMS,"Logger",{
-            value: {
-                log: console.log
-            }
-        })
-        this.context = {
-            CMS: CMS
-        }*/
-        CMS.Core = {
-            version: {
-                major: 0,
-                minor: 0,
-                patch: 1,
-                toString: function toString() {
-                    return this.major + "." + this.minor + "." + this.patch;
-                }
-            }
-        }
-        CMS.Console = {
-            error: console.error,
-            log: console.log
-        }
-        CMS.Logger = {
-            error: function log(message) {
-                console.log("\x1b[31;1m [ERROR] \x1b[31m" + _glob.manifest.name + " " + message + "\x1b[0m");
-            },
-            log: function log(message) {
-                console.log("\x1b[1m [LOG] \x1b[0m" + _glob.manifest.name + " " + message + "\x1b[0m");
-            }
-        }
-        CMS.Plugin = {
-            on: function on(eventName,eventHandler) {
-                _glob.eventListeners.push({
-                    eventName: eventName,
-                    eventHandler: eventHandler
-                });
-                //console.log(eventName);
-            }
-        }
-        CMS.Permission = {
-            on: function on(eventName,eventHandler) {
-                _glob.eventListeners.push({
-                    eventName: eventName,
-                    eventHandler: eventHandler
-                });
-                //console.log(eventName);
-            },
-            request: function request(permissionName,callback) {
-                return new Promise(function(resolve,reject) {
-                    //TODO: Implement Permission Request API
-                })
-            }
-        }
-        this.context = {
-            CMS: CMS
-        }
-        vm.createContext(this.context);
-        this.mainScript = fs.readFileSync(path + manifest.main,{
-            encoding: "utf8"
-        })
+        this.permissions = permissions;
     }
     run() {
-        try {
+        this.childProcess.send({
+            type: "run",
+            data: {}
+        });
+        /*try {
             vm.runInContext(this.mainScript,this.context);
             this.triggerEvent("activate",{
                 name: this.manifest.name,
@@ -96,15 +33,32 @@ class PluginNode {
             })
         } catch(e) {
             console.error("\x1b[31;1m [ERROR] \x1b[31m" + this.manifest.name + " " + e + "\x1b[0m");
-        }
+        }*/
     }
     triggerEvent(eventName,event) {
-        for(var i of this.eventListeners) {
+        this.childProcess.send({
+            type: "triggerEvent",
+            data: {
+                eventName: eventName,
+                event: event
+            }
+        });
+        /*for(var i of this.eventListeners) {
             if(i.eventName === eventName) {
                 console.log("Event triggered: " + eventName);
                 i.eventHandler(event);
             }
-        }
+        }*/
+    }
+    updatePermission(name,value) {
+        this.childProcess.send({
+            type: "updatePermissions",
+            data: {
+                name: name,
+                value: value
+            }
+        });
+        this.permissions.name = value;
     }
 }
 
@@ -114,7 +68,7 @@ module.exports = {
     loadPlugins: function loadPlugins(dbConnector) {
         globalDbConnector = dbConnector;
         var pluginDb = dbConnector.readJSON("plugins") || {};
-        console.log(pluginDb);
+        //console.log(pluginDb);
         var installAllPlugins = true;
         /*
             Create an plugin object
@@ -170,7 +124,7 @@ module.exports = {
                             path: "././plugins/" + pluginDir[i] + "/",
                             activated: true
                         };
-                        globalDbConnector.writeJSON("plugins",pluginDb);
+                        globalDbConnector.writeJSON("plugins",{}/*pluginDb*/);
                         try {
                             //var manifest = JSON.parse(fs.readFileSync("././plugins/" + pluginDir[i] + "/manifest.json"));
                             var manifest = pluginDb[pluginUUID].manifest;
