@@ -12,8 +12,8 @@ var handleEditor = require("./handler/editor");
 var handleUpload = require("./handler/upload");
 var handleFileUpload = require("./handler/file-upload");
 
-
-var PORT = process.env.PORT || 3000;
+var DEV = process.argv.includes("DEV=true");
+var PORT = process.env.PORT || 3002;
 
 var dbConnector = new DBConnector("filesystem");
 dbConnector.connect();
@@ -25,6 +25,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(fileUpload());
 
 app.use(function(req,res,next) {
+    if(DEV){
+        res.setHeader("X-Powered-By","CMS by Saasmull");
+    }
     if(req.originalUrl !== "/" && req.originalUrl.endsWith("/")) {
         res.redirect(req.originalUrl.substring(0,req.originalUrl.length - 1));
         return false;

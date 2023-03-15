@@ -188,7 +188,7 @@ module.exports = function handleFileUpload(req,res,parentScope,dbConnector) {
             var files = dbConnector.readJSON("file-uploads") || {};
             //console.log(getPathInfo(req.query["CurrentPath"], files));
             //console.log("\n\n");
-            res.send(JSON.stringify(getPathInfo(req.query["CurrentPath"], files),null,3));
+            res.json(JSON.stringify(getPathInfo(req.query["CurrentPath"], files),null,3));
         }
     } else {
         res.redirect("admin");
