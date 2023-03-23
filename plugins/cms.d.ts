@@ -1,21 +1,23 @@
-
-
 type baseEvent = {
     timestamp: number,
-    type: pluginEventType
+    type: PluginEventType
 }
 
 /**
  * The type of the event
- * 
- * The `install` event is triggered when the plugin is installed. 
- * The `activate` event is triggered when the plugin is activated. 
+ * The `install` event is triggered when the plugin is installed.
+ * The `activate` event is triggered when the plugin is activated.
  */
-type pluginEventType = 
-"install" |
-"activate" |
-"deactivate" |
-"uninstall"
+type PluginEventType =
+    "install" |
+    "activate" |
+    "deactivate" |
+    "uninstall"
+
+
+
+
+
 
 type pluginEvent = baseEvent & {
     /**
@@ -28,27 +30,37 @@ type pluginEvent = baseEvent & {
     version: string
 }
 
+
 /**
  * The type of the permission
  * @todo Add permissions to the core
  */
-type permissionType = 
-"database" |
-"file" |
-"user" |
-"theme" |
-"route"
+type PermissionType =
+    "database" |
+    "file" |
+    "user" |
+    "theme" |
+    "route"
+
+
+
+
+
 
 /**
  * The type of the event
- * 
- * The `granted` event is triggered when the permission is granted. 
- * The `denied` event is triggered when the permission is denied. 
+ *
+ * The `granted` event is triggered when the permission is granted.
+ * The `denied` event is triggered when the permission is denied.
  * @todo Add permissions to the core
  */
-type permissionEventType = 
-"granted" |
-"denied"
+type PermissionEventType =
+    "granted" |
+    "denied"
+
+
+
+
 
 
 type permissionEvent = baseEvent & {
@@ -56,7 +68,7 @@ type permissionEvent = baseEvent & {
      * The name of the permission
      * @todo Add permissions to the core
      */
-    name: string,
+    name: PermissionType,
     /**
      * Whether the permission is allowed or not
      * @todo Add permissions to the core
@@ -144,11 +156,11 @@ declare namespace CMS {
         function on(
             /**
              * The type of the event
-             * 
-             * The `install` event is triggered when the plugin is installed. 
-             * The `activate` event is triggered when the plugin is activated. 
+             *
+             * The `install` event is triggered when the plugin is installed.
+             * The `activate` event is triggered when the plugin is activated.
              */
-            eventType: pluginEventType,
+            eventType: PluginEventType,
             /**
              * The event handler for the event
              * @param pluginEvent The event object
@@ -162,7 +174,7 @@ declare namespace CMS {
      */
     namespace Plugins {
         function on(
-            eventType: pluginEventType,
+            eventType: PluginEventType,
             eventHandler: function(pluginEvent)
         ): number
     }
@@ -173,11 +185,11 @@ declare namespace CMS {
      */
     namespace Permission {
         function on(
-            eventType: permissionEventType,
+            eventType: PermissionEventType,
             eventHandler: function(permissionEvent)
         ): number
         function request(
-            permission: permissionType,
+            permission: PermissionType,
             callback?: function(permissionEvent)
         ): Promise
     }
