@@ -108,7 +108,7 @@ class PluginNode {
                 type: "activate"
             })
         } catch(e) {
-            console.error("\x1b[31;1m [ERROR] \x1b[31m" + this.manifest.name + " " + e + "\x1b[0m");
+            console.error("\x1b[31;1m [1ERROR] \x1b[31m" + this.manifest.name + " " + e + "\x1b[0m");
         }
     }
     triggerEvent(namespace,eventName,event) {

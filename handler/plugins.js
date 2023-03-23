@@ -69,7 +69,7 @@ module.exports = {
         globalDbConnector = dbConnector;
         var pluginDb = dbConnector.readJSON("plugins") || {};
         //console.log(pluginDb);
-        var installAllPlugins = true;
+        var installAllPlugins = 0//true;
         /*
             Create an plugin object
             Load the plugin
@@ -101,11 +101,11 @@ module.exports = {
                     var pluginUUID = fs.readFileSync("././plugins/" + pluginDir[i] + "/uuid.txt");
                     //console.log(pluginUUID);
                     try {
-                        //var manifest = JSON.parse(fs.readFileSync("././plugins/" + pluginDir[i] + "/manifest.json"));
-                        var manifest = pluginDb[pluginUUID].manifest;
+                        var manifest = JSON.parse(fs.readFileSync("././plugins/" + pluginDir[i] + "/manifest.json"));
+                        //var manifest = pluginDb[pluginUUID].manifest;
                         loadedPlugins.push(new PluginNode(manifest,"././plugins/" + pluginDir[i] + "/"));
                     } catch(e) {
-                        console.error("\x1b[31;1m [ERROR] \x1b[31m" + pluginDir[i] + " " + e + "\x1b[0m");
+                        console.error("\x1b[31;1m [3ERROR] \x1b[31m" + pluginDir[i] + " " + e + "\x1b[0m");
                     }
                 } catch(e) {
                     if(installAllPlugins) {
@@ -130,7 +130,7 @@ module.exports = {
                             var manifest = pluginDb[pluginUUID].manifest;
                             loadedPlugins.push(new PluginNode(manifest,"././plugins/" + pluginDir[i] + "/"));
                         } catch(e) {
-                            console.error("\x1b[31;1m [ERROR] \x1b[31m" + pluginDir[i] + " " + e + "\x1b[0m");
+                            console.error("\x1b[31;1m [2ERROR] \x1b[31m" + pluginDir[i] + " " + e + "\x1b[0m");
                         }
                     } else {
                         console.info("\x1b[34;1m [INFO] \x1b[34m The plugin in " + pluginDir[i] + " is not installed!\x1b[0m");
